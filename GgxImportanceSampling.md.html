@@ -12,28 +12,28 @@ $\newcommand{\a}{\alpha}$
 
 Note that if you're seeing this text this is still a WIP. Please do not share this yet.
 
-Hello and welcome to the first entry in my [blag](https://xkcd.com/148/)! Pardon me while I remember how to write things coherently. As a quick introduction, my name is Joe Schutte and I've been a graphics and engine programmer in the game industry for a bit over ten years now. I've recently been dedicating a significant amount of my spare time towards reading research papers with a focus on rendering for film as well as writing an offline renderer using what I've read about. This blog will be a medium for me to write about any interesting subject that I encounter and believe might also be helpful to share with others.
+Hello and welcome to the first entry in my [blag](https://xkcd.com/148/)! Pardon me while I remember how to write things coherently. As a quick introduction, my name is Joe Schutte and I've been a graphics and engine programmer in the game industry for a bit over ten years now. I've recently been dedicating a significant amount of my spare time towards reading research papers with a focus on rendering for film as well as writing an offline renderer using what I've read about. This blog will be a medium for me to write about any interesting subject that I encounter and believe might be helpful to share with others.
 
 ---
 
-Today I'll be writing about importance sampling the GGX BRDF. GGX, also called Trowbridge-Reitz, used with the Smith masking-shadowing function has become ubiquious in the game industry so it was the first specular model I wanted to implement in the path tracer I'm writing. This subject has been covered in other blogs but those I've seen have left out details about how to correctly use their outputs. Additionally, Eric Heitz and Eugene D'Eon have published some wonderful research in the last few years that made improvements on the technique so hopefully by writing about that in part 2 I am able to show something new for everyone.
+Today I'll be writing about importance sampling the GGX BRDF. GGX, also called Trowbridge-Reitz, used with the Smith masking-shadowing function has become ubiquious in the game industry so it was the first specular model I wanted to implement in the path tracer I'm writing. This subject has been covered in other blogs but those I've seen have left out details about how to correctly use their outputs. Additionally, Eric Heitz and Eugene D'Eon have published some wonderful research in the last few years that made improvements on the technique so hopefully between what is written here and what I write about in part two I am able to introduce almost everyone to something new.
 
-I'm pretty sure there's a rule that you need to include the rendering equation in your first blog post. Or maybe it was for good luck? Either way, I'm going to lead with that and try to make use of it.
+Ok let's get started by describing the problem we want to solve. I'm pretty sure there's a rule that you need to include the rendering equation in your first blog post. Or maybe it was for good luck? Either way, I'm going to lead with that and try to make use of it.
 
 $$ \Lo(X, \wo) = \Le(X, \wo) + \int_\Omega \Li(X, \wi) ~ f(\wi, \wo) ~ | \wg \cdot \wi | ~ d\wi $$
 
-When evaluating the irradiance for a single ray hit in a path tracer we want to zoom in on the interior of that integral. Furthermore, we know that $\Li(X, \wi)$ will be information gathered by casting a ray in direction $\wi$ so we just want to focus here on choosing direction $\wi$ and then solving for $f(\wi, \wo) ~ | \wg \cdot \wi |$. As is fairly typical, $f(\wi, \wo)$ is the Cook-Torrance microfacet BRDF described by:
+When evaluating a single ray hit in a path tracer we want to zoom in on the interior of that integral $\Li(X, \wi) ~ f(\wi, \wo) ~ | \wg \cdot \wi |$. Furthermore, we know that $\Li(X, \wi)$ will be information gathered by casting a ray in direction $\wi$ so we just want to focus here on choosing a direction $\wi$ and then solving for $f(\wi, \wo) ~ | \wg \cdot \wi |$. $f(\wi, \wo)$ is the Cook-Torrance microfacet BRDF described by:
 
 $$\f(\wi,\wo) = \frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}$$
 
-used with the GGX distribution of normals for $\D$($\wm$) and the Smith masking-shadowing function for $\G_2(\wi,\wo,\wm)$. These equations are written as:
+In our specific example we are looking at the GGX distribution of normals for $\D$($\wm$) and the Smith masking-shadowing function for $\G_2(\wi,\wo,\wm)$. These equations are written as:
 
 	$$\D(\wm) = \frac{\a^2}{\pi((\wg \cdot \wm)^2(\a^2-1) + 1)^2}$$
 	$$\G_2(\wi, \wo) = \frac{2 ~ (\wm \cdot \wi) ~ (\wm \cdot \wo)}{ (\wm \cdot \wo) \sqrt{\a^2 + (1-\a^2)(\wg\cdot\wi)^2} + \wg \cdot \wi \sqrt{\a^2 + (1 - \a^2)(\wg \cdot \wo)^2}}$$
 
-If you really want to dig into what the Cook-Torrance model means and understand where it came from I highly recommend reading [Understanding the masking-shadowing function in microfacet-based BRDFs](http://jcgt.org/published/0003/02/03/paper.pdf) from Eric Heitz . $\D(\wm)$ is defined there and $\G_2(\wi, \wo)$ can be found as the uncorrelated version of the Smith Masking-Shadowing function in [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf) from Earl Hammon, Jr.
+$\D(\wm)$ is defined in [Microfacet Models for Refraction through Rough Surfaces](https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf) and the uncorrelated version of $\G_2(\wi, \wo)$ that we use can be found in [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf) from Earl Hammon, Jr.
 
-Now back to describing the problem we are solving. We have a surface roughess $\a$, an outgoing direction $\wo$, and a geometric normal $\wg$ from our surface. Both of those vectors will have been transformed to tangent space so $\wg$ will actually be just our up direction. In my case, that is the Y axis. We want to choose a direction $\wi$ with probability proportional to the amount of energy leaving in direction $\wo$ to sample and to solve for the reflectance.
+Now back to describing the problem we are solving. We know that we want to find $\wi$ and calculate $f(\wi, \wo) ~ | \wg \cdot \wi |$. As inputs we have a surface roughess $\a$, an outgoing direction $\wo$, and a geometric normal $\wg$ from our surface. Both of those vectors will have been transformed to tangent space so $\wg$ will actually be just our up direction. In my case, that is the Y axis. We have everything we need so let's get started.
 
 ---
 
@@ -43,11 +43,7 @@ The first technique I want to write about is to importance sample only $\D(\wm)$
 
 Now, if you remember how importance sampling works, you'll know that we are eventually going to need to divide our result by the pdf of the sample we take. As we will see the convienance of later, the pdf for generating the spherical coordinates is very similar to the distribution of normals itself. From Cao's post we have:
 
-	$$\p_m(\theta_m, \phi) = \frac{\a^2\cos\theta\sin\theta}{\pi((\a^2 - 1)\cos^2\theta + 1)^2}$$
-
-where $\cos\theta$ can be written as $(\wg \cdot \wi)$ and we can substitude in $\D(\wm)$ to get
-
-	$$\p_m(\theta_m, \phi) = \D(\wm)(\wg \cdot \wi)\sin\theta$$
+	$$\p(\theta_m, \phi) = \frac{\a^2\cos\theta\sin\theta}{\pi((\a^2 - 1)\cos^2\theta + 1)^2}$$
 
 The next step we'll want to take is to transform these spherical coordinates into Cartesian coordinates. With one last reminder that I am using Y-up, here are the equations for that:
 
@@ -61,36 +57,39 @@ And now we get to a step that people sometimes gloss over. I'm kinda going to do
 	
 	$$|\textit{J}_T| = \textit{r}^2\sin\theta$$
 
-which when we divide from the pdf $\p_m(\theta_m, \phi)$ with r still equal to 1 we can see that we've canceled out a term and we have:
+which when we divide from the pdf $\p_m(\theta_m, \phi)$ with r still equal to 1 we can see that we've canceled out the $sin\theta$ term. We can also now substitude in $\D(\wm)$ and write $\cos\theta$ as $(\wg \cdot \wi)$ to get:
 
-	$$\frac{\p_m(\theta_m, \phi)}{|\textit{J}_T|} = \D(\wm)(\wg \cdot \wi)$$
+	$$\p_m(\wm) = \D(\wm)(\wg \cdot \wi)$$
 
-Ok, back to finding $\wi$. Now that we have our microfacet normal $\wm$ we can use that to calculate the light direction $\wi$ that we want to sample by reflecting our view vector $\wo$ by $\wm$. This is the final step for generating $\wi$ but note that we've done another transformation when we reflected the vector so we're going to need to divide the pdf by the determinant of that Jacobian as well. The equation for reflection and the determinent of the Jacobian of that transformation is given by:
+We're almost there. Now that we have our microfacet normal $\wm$ we can use that to calculate the light direction $\wi$ that we want to sample by reflecting our view vector $\wo$ by $\wm$. This is the final step for generating $\wi$ but note that we've done another transformation when we reflected the vector so we're going to need to divide the pdf by the determinant of that Jacobian as well. The equation for reflection is given by:
 
 	$$\wi = 2|\wo \cdot \wm|\wm - \wo$$
+
+and the determinent of the Jacobian of that transformation is given by:
+
 	$$|\textit{J}_R| = \frac{1}{4|\wo \cdot \wm|}$$
 
-which when we divide from the pdf from earlier we get
+When we divide that out from $\p_m(\wm)$ we get the final pdf for sampling $\wm$ that I'm going to play a little fast and loose with notation here and call it $\p_i(\wm)$
 
-	$$\frac{\p_m(\theta_m, \phi)}{|\textit{J}_T||\textit{J}_R|} = \frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|} = \p(\wm)$$
+	$$\p_i(\wm) = \frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|}$$
 
-So there's our $\wi$ and now we have everything we need to solve for the reflectance. From the beginning we have the cook-torrance BRDF which we will divide by the pdf we calculated to generate $\wi$.
+So there's our $\wi$ and now we have everything we need to solve for the reflectance. We now take the $f(\wi, \wo) ~ | \wg \cdot \wi |$ term we mentioned at the beginning and we're going to divide that by the pdf we calculated to generate $\wi$ to solve for the reflectance coming from direction $\wi$.
 
-	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p(\wm)} = \frac{\frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)| \wg \cdot \wi |}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}}{\frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|}}$$
+	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p_i(\wm)} = \frac{\frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)| \wg \cdot \wi |}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}}{\frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|}}$$
 
 Conviently you can see that a *lot* of terms cancel out here and we're left with only this for our reflectance:
 
-	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p(\wm)} = \frac{\F(\wi,\wm) \G_2(\wi,\wo,\wm) |\wo \cdot \wm|}{|\wi \cdot \wg| |\wm\cdot\wg|}$$
+	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p_i(\wm)} = \frac{\F(\wi,\wm) \G_2(\wi,\wo,\wm) |\wo \cdot \wm|}{|\wi \cdot \wg| |\wm\cdot\wg|}$$
 
 From here we will transform $\wi$ from the tangent space we've been working in back to world space, cast a ray in that direction to solve for incoming energy $\Li(X, \wi)$, and multiply that by the reflectance we calculated here.
 
-Time for some pictures! 
+Now let's look at the results!
 
 ![In order to have something to compare to on the left I generated an image by importance sampling a cosine distribution and on the right I generated an image using the technique described above. The scene is the Stanford bunny with roughness 0.05 lit only with an environment light. Both images were generated with 1024 rays per pixel.](GgxImportanceSamplingImages\CosineVsGgxD.jpg)
 
-As you can see the results are significantly better than importance sampling with just a cosine lobe. However, there are still quite a few fireflys visible in the image so this technique would require a lot more samples to converge. In my next post I will talk about why we still see so many fireflys and about a more recent technique from Eric Heitz and Eugene D'Eon to importance sample the distribution of visible normals.
+As you can see the results are significantly higher quality than importance sampling with just a cosine lobe. However, there are still quite a few fireflys visible in the image so this technique would require a lot more samples to converge. In my next post I will talk about why we still see so many fireflys and about a more recent technique from Eric Heitz and Eugene D'Eon to importance sample the distribution of visible normals that fixes some of these problems.
 
-One last thing before we move on to part 2 is source code!
+One last thing before we move on to part 2 is I want to provide source code to help ground all of those for those that are less mathematically inclined. You'll need to fill in some blanks but the key parts are covered here.
 
 ~~~~~~
 //=================================================================================================
@@ -154,13 +153,13 @@ void ImportanceSampleGgxD(Random::MersenneTwister* twister, float3 wg, float3 wo
 }
 ~~~~~~
 
-And that's it for today. I'll look to part 2 as soon as it's done. Thanks for reading!
+And that's it for today. I'll link to part 2 as soon as it's done. Thanks for reading!
 
 References:
-- [Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs](http://jcgt.org/published/0003/02/03/paper.pdf) from Eric Heitz
-- [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf) from Earl Hammon, Jr.
+- [Microfacet Models for Refraction through Rough Surfaces](https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf)
+- [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf)
 - [Physically Based Rendering](http://www.pbrt.org/)
-- [Sampling microfacet BRDF](https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/) from Cao Jaiyin
+- [Sampling microfacet BRDF](https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/)
 
 Additional thanks to:
 - [Morgan McGuire](https://twitter.com/CasualEffects) for [Markdeep](https://casual-effects.com/markdeep/)
