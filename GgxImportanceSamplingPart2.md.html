@@ -13,6 +13,8 @@ $\newcommand{\a}{\alpha}$
 
 Note that if you're seeing this text this is still a WIP. Please do not share this yet.
 
+[@schuttejoe](https://twitter.com/schuttejoe)
+
 In [Part 1](GgxImportanceSamplingPart1.md.html) of this post I showed a common method for importance sampling the GGX distribution of normals using the inverse of the CDF of the distribution. While this clearly converged faster than importance sampling a cosine lobe it did still leave a number of fireflys in the image that would be pesky to deal with. Additionally, there is a hidden inefficency that is causing us to potentially waste a number of samples.
 
 In 2014 Eric Heitz and Eugene D'Eon published [Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals](https://hal.inria.fr/hal-00996995v1/document) that describes a method for importance sampling that takes the view direction into account. That solved both of the problems I mention however their method for importance sampling GGX was complicated and not exact. In 2017, Eric Heitz released a technical paper [A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals](https://hal.archives-ouvertes.fr/hal-01509746/document) that is... exactly what the title says it is. Today, I want to write about these improvements.
@@ -148,6 +150,9 @@ void ImportanceSampleGgxVdn(Random::MersenneTwister* twister, float3 wg, float3 
 }
 ~~~~~~
 
+Thanks again for reading!
+
+--- 
 References:
 - [Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs](http://jcgt.org/published/0003/02/03/paper.pdf)
 - [Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals](https://hal.inria.fr/hal-00996995v1/document)
@@ -156,5 +161,11 @@ References:
 Additional thanks to:
 - [HDRI Haven](https://hdrihaven.com/hdri/?h=red_wall) for the free IBL
 - reviewers
+
+---
+
+While I had an absolute blast writing this series and I definitely want to write more in the future I'm waiting to gague reactions before I decide if it makes sense to put effort into the actual appearance of the site. Until I decide to flesh things out more you can leave comments at:
+
+[@schuttejoe](https://twitter.com/schuttejoe)
 
 <!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
