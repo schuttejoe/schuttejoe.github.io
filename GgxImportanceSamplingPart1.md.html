@@ -31,7 +31,7 @@ In our specific example we are looking at the GGX distribution of normals for $\
 	$$\D(\wm) = \frac{\a^2}{\pi((\wg \cdot \wm)^2(\a^2-1) + 1)^2}$$
 	$$\G_2(\wi, \wo) = \frac{2 ~ (\wm \cdot \wi) ~ (\wm \cdot \wo)}{ (\wm \cdot \wo) \sqrt{\a^2 + (1-\a^2)(\wg\cdot\wi)^2} + \wg \cdot \wi \sqrt{\a^2 + (1 - \a^2)(\wg \cdot \wo)^2}}$$
 
-$\D(\wm)$ is defined in [Microfacet Models for Refraction through Rough Surfaces](https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf) and the uncorrelated version of $\G_2(\wi, \wo)$ that we use can be found in [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf) from Earl Hammon, Jr.
+$\D(\wm)$ is defined in [Microfacet Models for Refraction through Rough Surfaces](https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf) and the uncorrelated version of $\G_2(\wi, \wo)$ that we use can be found in [PBR Diffuse Lighting for GGX+Smith Microsurfaces](https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf).
 
 Now back to describing the problem we are solving. We know that we want to find $\wi$ and calculate $f(\wi, \wo) ~ | \wg \cdot \wi |$. As inputs we have a surface roughess $\a$, an outgoing direction $\wo$, and a geometric normal $\wg$ from our surface. Both of those vectors will have been transformed to tangent space so $\wg$ will actually be just our up direction. In my case, that is the Y axis. We have everything we need so let's get started.
 
@@ -39,27 +39,37 @@ Now back to describing the problem we are solving. We know that we want to find 
 
 The first technique I want to write about is to importance sample only $\D(\wm)$. This is quite effective since the distribution of normals does have a significant impact on the directions you want to sample. To importance sample $\D(\wm)$ we will use the inverse of the CDF of $\D(\wm)$ to generate a microfacet normal $\wm$. If you are familar with using GGX in game rendering this can be thought of as creating a half vector in tangent space. The derivation of the inverse of the CDF is covered in detail in Cao Jaiyin's post [here](https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/) so I'll just refer you to that for the details and list the relevant equations here:
 
-	$$\theta_m = \arccos\sqrt{\frac{1 - \xi_0}{\xi(\a^2 -1) + 1}} ~ ~ ~ ~ ~\phi = 2 \pi \xi_1$$
+	$$\theta_m = \arccos\sqrt{\frac{1 - \xi_0}{\xi(\a^2 -1) + 1}} ~ ~ ~ ~ ~ ~ ~ ~ ~\phi = 2 \pi \xi_1$$
 
 Now, if you remember how importance sampling works, you'll know that we are eventually going to need to divide our result by the pdf of the sample we take. As we will see the convienance of later, the pdf for generating the spherical coordinates is very similar to the distribution of normals itself. From Cao's post we have:
 
 	$$\p(\theta_m, \phi) = \frac{\a^2\cos\theta\sin\theta}{\pi((\a^2 - 1)\cos^2\theta + 1)^2}$$
 
-The next step we'll want to take is to transform these spherical coordinates into Cartesian coordinates. With one last reminder that I am using Y-up, here are the equations for that:
+The next step we'll want to take is to transform these spherical coordinates into Cartesian coordinates. I think if you are familar with everything I've said so far you probably already know the equations for this but I'll list them for the sake of completeness. With one last reminder that I am using Y-up, here they are:
 
 	$$\textit{x} = \textit{r}\sin\theta\cos\phi$$
-	$$\textit{y} = \textit{r}\cos\theta$$
+	$$\textit{y} = \textit{r}\cos\theta~~~~~~~~$$
 	$$\textit{z} = \textit{r}\sin\theta\sin\phi$$
 
 where r=1 in this case. This gives us $\wm$.
 
-And now we get to a step that people sometimes gloss over. I'm kinda going to do that too but I want to at least mention it :). When we generate a sample with some distribution and then apply a transformation to that sample, we end up with a different distribution (unless the transformation was the identity). We need to account for that by modifying the pdf as well. This is done in an N dimensional case by dividing the pdf by the absolute value of the determinant of the Jacobian matrix of the transformation. Unfortunately, I don't have a web link that shows more detail on this but you can see section 13.5 of the second edition of the book Physically Based Rendering for details. So, the determinant of the Jacobian of our transformation from spherical to Cartesian coordinates is:
+---
+
+Ok, let's step aside for a moment and talk about what the transformation from spherical to Cartesian coordinates does to our pdf. Assuming we drew our sample x from a random variable X and then we apply some transformation $\textit{T}$ to that sample it can be thought of as us having drawn a sample from a different random variable Y with the property that
+
+    $$\p_y(y) = \p_y(\textit{T}(x)) = \frac{\p_x(x)}{|\textit{J}_\textit{T}(x)|}$$
+
+where $|\textit{J}_\textit{T}(x)|$ is the absolute value of the determinant of the Jacobin of transformation T. Unfortunately I don't know of any websites that show this derivation in more detail but if you happen to have the book Physically Based Rendering they show the derivation of that in the one dimensional case. For the second edition you can find that in section 13.5.
+
+---
 	
+Armed now with that knowledge and given that the Jacobian of the transformation from spherical to Cartesian is given as:
+
 	$$|\textit{J}_T| = \textit{r}^2\sin\theta$$
 
-which when we divide from the pdf $\p_m(\theta_m, \phi)$ with r still equal to 1 we can see that we've canceled out the $sin\theta$ term. We can also now substitude in $\D(\wm)$ and write $\cos\theta$ as $(\wg \cdot \wi)$ to get:
+we can divide that from the pdf $\p_m(\theta_m, \phi)$ with r still equal to 1 to see that we've canceled out the $sin\theta$ term. We can also now substitude in $\D(\wm)$ and write $\cos\theta$ as $(\wg \cdot \wm)$ to get:
 
-	$$\p_m(\wm) = \D(\wm)(\wg \cdot \wi)$$
+	$$\p_m(\wm) = \D(\wm)(\wg \cdot \wm)$$
 
 We're almost there. Now that we have our microfacet normal $\wm$ we can use that to calculate the light direction $\wi$ that we want to sample by reflecting our view vector $\wo$ by $\wm$. This is the final step for generating $\wi$ but note that we've done another transformation when we reflected the vector so we're going to need to divide the pdf by the determinant of that Jacobian as well. The equation for reflection is given by:
 
@@ -69,15 +79,15 @@ and the determinent of the Jacobian of that transformation is given by:
 
 	$$|\textit{J}_R| = \frac{1}{4|\wo \cdot \wm|}$$
 
-When we divide that out from $\p_m(\wm)$ we get the final pdf for sampling $\wm$ that I'm going to play a little fast and loose with notation here and call it $\p_i(\wm)$
+When we divide that out from $\p_m(\wm)$ we get the final pdf for sampling $\wm$ that I'm going to play a little fast and loose with notation here and call it $\p_i(\wm, \wo)$
 
-	$$\p_i(\wm) = \frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|}$$
+	$$\p_i(\wm, \wo) = \frac{\D(\wm)(\wg \cdot \wm)}{4|\wo \cdot \wm|}$$
 
-So there's our $\wi$ and now we have everything we need to solve for the reflectance. We now take the $f(\wi, \wo) ~ | \wg \cdot \wi |$ term we mentioned at the beginning and we're going to divide that by the pdf we calculated to generate $\wi$ to solve for the reflectance coming from direction $\wi$.
+Now that we have direction $\wi$ and the pdf of the random variable that generated $\wi$ we have everything we need to solve for the reflectance. We now take the $f(\wi, \wo) ~ | \wg \cdot \wi |$ term we mentioned at the beginning and we're going to divide that by the pdf $\p_i(\wm, \wo)$ to solve for the reflectance coming from direction $\wi$.
 
-	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p_i(\wm)} = \frac{\frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)| \wg \cdot \wi |}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}}{\frac{\D(\wm)(\wg \cdot \wi)}{4|\wo \cdot \wm|}}$$
+	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p_i(\wm, \wo)} = \frac{\frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)| \wg \cdot \wi |}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}}{\frac{\D(\wm)(\wg \cdot \wm)}{4|\wo \cdot \wm|}}$$
 
-Conviently you can see that a *lot* of terms cancel out here and we're left with only this for our reflectance:
+Conveniently you can see that a few terms cancel out and we're left with only this for our reflectance:
 
 	$$\frac{\f(\wi,\wo)| \wg \cdot \wi |}{\p_i(\wm)} = \frac{\F(\wi,\wm) \G_2(\wi,\wo,\wm) |\wo \cdot \wm|}{|\wi \cdot \wg| |\wm\cdot\wg|}$$
 
@@ -89,7 +99,7 @@ Now let's look at the results!
 
 As you can see the results are significantly higher quality than importance sampling with just a cosine lobe. However, there are still quite a few fireflys visible in the image so this technique would require a lot more samples to converge. In my next post I will talk about why we still see so many fireflys and about a more recent technique from Eric Heitz and Eugene D'Eon to importance sample the distribution of visible normals that fixes some of these problems.
 
-One last thing before we move on to part 2 is I want to provide source code to help ground all of those for those that are less mathematically inclined. You'll need to fill in some blanks but the key parts are covered here.
+One last thing before we move on to part 2 is I want to provide source code to help ground all of this for those that are less mathematically inclined. You'll need to fill in some blanks but the key parts are covered here.
 
 ~~~~~~
 //=================================================================================================
@@ -101,7 +111,7 @@ static float3 SchlickFresnel(float3 r0, float radians)
 }
 
 //=================================================================================================
-static float SmithGGXMaskingShading(float3 wi, float3 wo, float3 wm, float a2)
+static float SmithGGXMaskingShadowing(float3 wi, float3 wo, float3 wm, float a2)
 {
     // non height-correlated masking function is described here:
     // https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
@@ -138,11 +148,11 @@ void ImportanceSampleGgxD(Random::MersenneTwister* twister, float3 wg, float3 wo
 
     // -- Ensure our sample is in the upper hemisphere for the point we're sampling.
     // -- Since we are in tangent space with a y-up coordinate system this simply returns wi.y
-    if(BsdfNDot(wi) > 0.0f) {
+    if(BsdfNDot(wi) > 0.0f && Dot(wi, wm) > 0.0f) {
 
         // -- calculate the reflectance to multiply by the energy retrieved in direction wi
         float3 F = SchlickFresnel(material->specularColor, Dot(wi, wm));
-        float G = SmithGGXMaskingShading(wi, wo, wm, a2);
+        float G = SmithGGXMaskingShadowing(wi, wo, wm, a2);
         float weight = Math::Absf(Dot(wi, wm)) / (BsdfNDot(wi) * BsdfNDot(wm));
 
         reflectance = F * G * weight; 
@@ -153,7 +163,7 @@ void ImportanceSampleGgxD(Random::MersenneTwister* twister, float3 wg, float3 wo
 }
 ~~~~~~
 
-And that's it for today. I'll link to part 2 as soon as it's done. Thanks for reading!
+And that's it for today. For a description of the flaws with this method and a writeup about an even better method see [part 2](GgxImportanceSamplingPart2.md.html) of this post. Thanks for reading!
 
 References:
 - [Microfacet Models for Refraction through Rough Surfaces](https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf)
