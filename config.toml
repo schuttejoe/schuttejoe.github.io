@@ -1,0 +1,10 @@
+languageCode = "en-us"
+title = "Rendering Equations"
+theme = "hyde"
+
+[Params]
+  themeColor = "theme-base-0b"
+  description = "Joe Schutte"
+  copyright = " "
+   twitter = "schuttejoe"
+   github = "schuttejoe"
