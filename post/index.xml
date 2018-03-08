@@ -2,39 +2,39 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Rendering Equations</title>
-    <link>http://schuttejoe.com/post/</link>
+    <link>https://schuttejoe.github.io/post/</link>
     <description>Recent content in Posts on Rendering Equations</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 07 Mar 2018 16:06:07 -0800</lastBuildDate>
     
-	<atom:link href="http://schuttejoe.com/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://schuttejoe.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Importance Sampling techniques for GGX with Smith Masking-Shadowing: Part 2</title>
-      <link>http://schuttejoe.com/post/ggximportancesamplingpart2/</link>
+      <link>https://schuttejoe.github.io/post/ggximportancesamplingpart2/</link>
       <pubDate>Wed, 07 Mar 2018 16:06:07 -0800</pubDate>
       
-      <guid>http://schuttejoe.com/post/ggximportancesamplingpart2/</guid>
+      <guid>https://schuttejoe.github.io/post/ggximportancesamplingpart2/</guid>
       <description>In Part 1 of this post I showed a common method for importance sampling the GGX distribution of normals using the inverse of the CDF of the distribution. While this clearly converged faster than importance sampling a cosine lobe it did still leave a number of fireflys in the image that would be pesky to deal with. Additionally, there is a hidden inefficency that is causing us to potentially waste a number of samples.</description>
     </item>
     
     <item>
       <title>Importance Sampling techniques for GGX with Smith Masking-Shadowing: Part 1</title>
-      <link>http://schuttejoe.com/post/ggximportancesamplingpart1/</link>
+      <link>https://schuttejoe.github.io/post/ggximportancesamplingpart1/</link>
       <pubDate>Wed, 07 Mar 2018 12:38:20 -0800</pubDate>
       
-      <guid>http://schuttejoe.com/post/ggximportancesamplingpart1/</guid>
+      <guid>https://schuttejoe.github.io/post/ggximportancesamplingpart1/</guid>
       <description>Today I&amp;rsquo;ll be writing about importance sampling the GGX BRDF. GGX used with the Smith masking-shadowing function has become ubiquious in the game industry so it was the first specular model I wanted to implement in the path tracer I&amp;rsquo;m writing. About two weeks before I wrote this blog post I sat down and googled &amp;ldquo;importance sampling ggx&amp;rdquo; and while I was able to find a number of articles and papers that described specific details of the technique I was left a little unsure about whether I was combining the pieces together correctly.</description>
     </item>
     
     <item>
       <title>Super quick intro</title>
-      <link>http://schuttejoe.com/post/intro/</link>
+      <link>https://schuttejoe.github.io/post/intro/</link>
       <pubDate>Wed, 07 Mar 2018 10:06:13 -0800</pubDate>
       
-      <guid>http://schuttejoe.com/post/intro/</guid>
+      <guid>https://schuttejoe.github.io/post/intro/</guid>
       <description>My name is Joe Schutte and I&amp;rsquo;ve been a graphics and engine programmer in the game industry for a bit over ten years now. I&amp;rsquo;ve recently been dedicating a significant amount of my spare time towards reading research papers with a focus on rendering for film as well as writing an offline renderer using what I&amp;rsquo;ve read about. This blog will be a medium for me to write about any interesting subject that I encounter and believe might be helpful to share with others.</description>
     </item>
     
