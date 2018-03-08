@@ -79,7 +79,7 @@
 
 <p>$$\L_o(X, \wo) = \L_e(X, \wo) + \int_\Omega \L_i(X, \wi) ~ f(\wi, \wo) ~ | \wi \cdot \wg | ~ d\wi $$</p>
 
-<p>When evaluating a single ray hit in a path tracer we want to zoom in on the interior of that integral. Furthermore, we know that $\L_i(X, \wi)$ will be information gathered by casting a ray in direction $\wi$ so we just want to focus here on choosing a direction $\wi$ and then solving for $f(\wi, \wo) ~ | \wi \cdot \wg |$. $f(\wi, \wo)$ here is the Cook-Torrance microfacet BRDF described by:</p>
+<p>When evaluating a single ray hit in a path tracer we want to zoom in on the interior of that integral. Furthermore, we know that $\L_i(X, \wi)$ will be information gathered by casting a ray in direction $\wi$ so we just want to focus here on choosing a direction $\wi$ and then solving for $f(\wi, \wo) ~ | \wi \cdot \wg |$. The equation $f(\wi, \wo)$ here is the Cook-Torrance microfacet BRDF described by:</p>
 
 <p>$$\f(\wi,\wo) = \frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)}{4 ~ |\wi\cdot\wg| ~ |\wo\cdot\wg|}$$</p>
 
@@ -153,7 +153,7 @@ $$\textit{z} = \textit{r}\sin\theta\sin\phi$$</p>
 <li>Perform the inverse rotation from our first step. This has a Jacobian of 1 again.</li>
 </ul>
 
-<p>Now we have calculated the reflected vector $\textit{o}$ in a far more complicated way that we described earlier but this now has much easier steps for deriving the Jacobian. Since the Jacobian of the composition of two transformations is just the product of those two Jacobians we just need to multiply the above Jacobians together. This gives us:</p>
+<p>Now we have calculated the reflected vector $\textit{o}$ in a far more complicated way than we described earlier but this now has much easier steps for deriving the Jacobian. Since the Jacobian of the composition of two transformations is just the product of those two Jacobians we just need to multiply the above Jacobians together. This gives us:</p>
 
 <p>$$|\frac{2\sin\theta_o}{\sin\theta_h}| = |\frac{2\sin(2\theta_h)}{\sin\theta_h}| = |\frac{4\sin\theta_h\cos\theta_h}{\sin\theta_h}| = 4|cos\theta_h|$$</p>
 

@@ -99,7 +99,7 @@
 
 <hr />
 
-<p>Now that we understand the flaws of importance sampling $\D$($\wm$) let&rsquo;s look to Heitz and D&rsquo;Eon and see how they solved these problems. In the 2014 paper <a href="http://jcgt.org/published/0003/02/03/paper.pdf">Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs</a> Heitz introduces the statistical distribution of visible normals. This can be thought of as a function that describes the probabily that a microfacet normal on a surface is visible to the direction $\wo$. This function is defined as:</p>
+<p>Now that we understand the flaws of importance sampling $\D$($\wm$) let&rsquo;s look to Heitz and D&rsquo;Eon and see how they solved these problems. In the 2014 paper <a href="http://jcgt.org/published/0003/02/03/paper.pdf">Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs</a> Heitz shows the statistical distribution of visible normals. This can be thought of as a function that describes the probabily that a microfacet normal on a surface is visible to the direction $\wo$. This function is defined as:</p>
 
 <p>$$\D_{\wo}(\wm) = \frac{\G_1(\wo, \wm) ~ |\wo \cdot \wm| ~ \D(\wm)}{|\wo \cdot \wg|}$$</p>
 
@@ -126,9 +126,9 @@
 <p>The last thing we need to do is to have a way to uniformly sample only the part of the hemisphere that gives us a microfacet normal $\wm$ where $\wm \cdot \wo \gt 0$. The clever trick that Heitz uses here is to rotate half of the disk upwards so that it is perpendicular to the ray direction $\wo$ then generates samples on the two half disks with probability proportional to its projected area onto direction $\wg$. Then those points are projected onto the hemisphere in the direction of $\wo$ to give us our micofacet normal $\wm$ with $\a=1$. The final step is to apply the stretch to $\wm$ so it is usable for the roughness of the surface we are evaluating.</p>
 
 <p><img src="/img/GgxImportanceSamplingImages/discs.jpg" alt="" />
-<em>Should be easy to see how $\wm \cdot \wo \gt 0$. Heitz and I use different variables again here so let $\textit{V}=\wo$.</em></p>
+<em>Heitz and I use different variables again here so let $\textit{V}=\wo$. It should be easy to see how $\wm \cdot \wo \gt 0$ since both directions can be thought of as fitting between those two half disks.</em></p>
 
-<p>The technical document is quite short and shows the details of the algorithm to generate $\wm$ so I&rsquo;ll leave that out here and let you check the document for that. Or you can just glean it from the source code below.</p>
+<p>The technical document is quite short and shows the details of the algorithm to generate $\wm$ so I&rsquo;ll leave that out here and let you <a href="https://hal.archives-ouvertes.fr/hal-01509746/document">check the document</a> for that. Or you can just glean it from the source code below.</p>
 
 <hr />
 
