@@ -1,6 +1,6 @@
 ---
 title: "Importance Sampling techniques for GGX with Smith Masking-Shadowing: Part 1"
-date: 2018-03-05T12:38:20-08:00
+date: 2018-03-07T12:38:20-08:00
 ---
 
 Today I'll be writing about importance sampling the GGX BRDF. GGX used with the Smith masking-shadowing function has become ubiquious in the game industry so it was the first specular model I wanted to implement in the path tracer I'm writing. About two weeks before I wrote this blog post I sat down and googled "importance sampling ggx" and while I was able to find a number of articles and papers that described specific details of the technique I was left a little unsure about whether I was combining the pieces together correctly. This blog post is a result of my investigation that followed and will hopefully provide enough details along the way that anyone in the future who searches for a similar phrase will be confident in their implementation.

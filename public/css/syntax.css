@@ -40,10 +40,6 @@
 .nv { color: #003333 } /* Name.Variable */
 .ow { color: #000000; } /* Operator.Word */
 .w { color: #bbbbbb } /* Text.Whitespace */
-.mf { color: #FF6600 } /* Literal.Number.Float */
-.mh { color: #FF6600 } /* Literal.Number.Hex */
-.mi { color: #FF6600 } /* Literal.Number.Integer */
-.mo { color: #FF6600 } /* Literal.Number.Oct */
 .sb { color: #CC3300 } /* Literal.String.Backtick */
 .sc { color: #CC3300 } /* Literal.String.Char */
 .sd { color: #CC3300; font-style: italic } /* Literal.String.Doc */

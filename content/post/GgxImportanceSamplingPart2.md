@@ -1,6 +1,6 @@
 ---
 title: "Importance Sampling techniques for GGX with Smith Masking-Shadowing: Part 2"
-date: 2018-03-05T16:06:07-08:00
+date: 2018-03-07T16:06:07-08:00
 ---
 
 In [Part 1](/post/ggximportancesamplingpart1) of this post I showed a common method for importance sampling the GGX distribution of normals using the inverse of the CDF of the distribution. While this clearly converged faster than importance sampling a cosine lobe it did still leave a number of fireflys in the image that would be pesky to deal with. Additionally, there is a hidden inefficency that is causing us to potentially waste a number of samples.
