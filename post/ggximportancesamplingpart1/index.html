@@ -58,7 +58,7 @@
       
       
           
-          <a href="http://github.com/schuttejoe" title="@schuttejoe on GitHub">
+          <a href="http://github.com/schuttejoe" title="schuttejoe on GitHub">
             <img align="left" src="/img/Github.png">
           </a>
       
@@ -87,7 +87,7 @@
 
 <p>$\D(\wm) = \frac{\a^2}{\pi((\wg \cdot \wm)^2(\a^2-1) + 1)^2}$</p>
 
-<p>$\G_2(\wi, \wo) = \frac{2 (\wm \cdot \wi) (\wm \cdot \wo)}{ (\wm \cdot \wo) \sqrt{\a^2 + (1-\a^2)(\wg\cdot\wi)^2} + \wg \cdot \wi \sqrt{\a^2 + (1 - \a^2)(\wg \cdot \wo)^2}}$</p>
+<p>$\G_2(\wi, \wo) = \frac{2 (\wg \cdot \wi) (\wg \cdot \wo)}{ (\wg \cdot \wo) \sqrt{\a^2 + (1-\a^2)(\wg\cdot\wi)^2} + \wg \cdot \wi \sqrt{\a^2 + (1 - \a^2)(\wg \cdot \wo)^2}}$</p>
 
 <p>$\D(\wm)$ is defined in <a href="https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf">Microfacet Models for Refraction through Rough Surfaces</a> and the uncorrelated version of $\G_2(\wi, \wo)$ that we use can be found in <a href="https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf">PBR Diffuse Lighting for GGX+Smith Microsurfaces</a>.</p>
 
@@ -196,11 +196,10 @@ static float3 SchlickFresnel(float3 r0, float radians)
 
 //====================================================================
 // non height-correlated masking-shadowing function is described here:
-static float SmithGGXMaskingShadowing(float3 wi, float3 wo, float3 wm,
-                                      float a2)
+static float SmithGGXMaskingShadowing(float3 wi, float3 wo, float a2)
 {
-    float dotNL = Dot(wi, wm);
-    float dotNV = Dot(wo, wm);
+    float dotNL = BsdfNDot(wi);
+    float dotNV = BsdfNDot(wo);
 
     float denomA = dotNV * Sqrtf(a2 + (1.0f - a2) * dotNL * dotNL);
     float denomB = dotNL * Sqrtf(a2 + (1.0f - a2) * dotNV * dotNV);
@@ -241,7 +240,7 @@ void ImportanceSampleGgxD(Random::MersenneTwister* twister, float3 wg,
         // -- calculate the reflectance to multiply by the energy
         // -- retrieved in direction wi
         float3 F = SchlickFresnel(material-&gt;specularColor, dotWiWm);
-        float G = SmithGGXMaskingShadowing(wi, wo, wm, a2);
+        float G = SmithGGXMaskingShadowing(wi, wo, a2);
         float weight = Absf(Dot(wo, wm))
                      / (BsdfNDot(wo) * BsdfNDot(wm));
 
@@ -254,6 +253,8 @@ void ImportanceSampleGgxD(Random::MersenneTwister* twister, float3 wg,
 </code></pre>
 
 <p>And that&rsquo;s it for today. For a description of the flaws with this method and a writeup about an even better method see <a href="/post/ggximportancesamplingpart2">part 2</a> of this post. Thanks for reading!</p>
+
+<p>(Edit 3/12/18: I found an error in the Smith masking shadowing equation and function and corrected it.)</p>
 
 <hr />
 
