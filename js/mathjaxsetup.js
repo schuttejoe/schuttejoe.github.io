@@ -10,6 +10,7 @@ MathJax.Hub.Config({
 	  F: "\\textit{F}",
 	  p: "\\textit{p}",
 	  a: "\\alpha",
+	  c: "\\textbf{c}",
 	  wm: "\\hat{\\omega}_m",
 	  wi: "\\hat{\\omega}_i",
 	  wg: "\\hat{\\omega}_g",
