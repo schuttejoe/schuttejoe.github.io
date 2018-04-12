@@ -104,7 +104,7 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <hr />
 
-<p>Let&rsquo;s jump ahead and take a look at this in action. Based on the description above in a scene with a small rectangular area light centered directly above it we would expect both strategies to have simiular noise levels directly under the light and then for the solid angle sampling to have reduced noise further away from the light. Both images below were created using 1 camera ray per pixel and 4 light rays are cast at the intersection. To show the effect of the light as clearly as possible I used a Lambertian BRDF here. On the left I used area sampling and on the right I used solid angle sampling.</p>
+<p>Let&rsquo;s jump ahead and take a look at this in action. Based on the description above in a scene with a small rectangular area light centered directly above it we would expect both strategies to have similar noise levels directly under the light and then for the solid angle sampling to have reduced noise further away from the light. Both images below were created using 1 camera ray per pixel and 4 light rays are cast at the intersection. To show the effect of the light as clearly as possible I used a Lambertian BRDF here. On the left I used area sampling and on the right I used solid angle sampling.</p>
 
 <p><a href="/img/AreaLightSampling/RectangleAreaVsSolidAngle.png"><img src="/img/AreaLightSampling/RectangleAreaVsSolidAngle.png" alt="" /></a></p>
 
@@ -260,6 +260,10 @@ static float3 IntegrateSphereLight(RTCScene&amp; rtcScene,
 <li>[Arvo 1995] <a href="https://www.graphics.cornell.edu/pubs/1995/Arv95c.pdf">Stratified Sampling of Spherical Triangles</a></li>
 <li>[Guillén 2017] <a href="https://www.solidangle.com/research/egsr2017_spherical_ellipse.pdf">Area-Preserving Parameterizations for Spherical Ellipses</a></li>
 </ul>
+
+<hr />
+
+<p>edit 4/11/2018: fixed spelling mistake pointed out to me by <a href="https://twitter.com/raroni86">@raroni86</a>.</p>
 
 </div>
 
