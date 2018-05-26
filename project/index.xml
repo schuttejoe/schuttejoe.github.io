@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Rendering Equations</title>
+    <link>https://schuttejoe.github.io/project/</link>
+    <description>Recent content in Projects on Rendering Equations</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 15 Feb 2017 14:04:59 -0700</lastBuildDate>
+    
+	<atom:link href="https://schuttejoe.github.io/project/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Dropzone</title>
+      <link>https://schuttejoe.github.io/project/dropzone/</link>
+      <pubDate>Wed, 15 Feb 2017 14:04:59 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/project/dropzone/</guid>
+      <description>     </description>
+    </item>
+    
+    <item>
+      <title>The Order: 1886</title>
+      <link>https://schuttejoe.github.io/project/theorder1886/</link>
+      <pubDate>Fri, 20 Feb 2015 14:04:59 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/project/theorder1886/</guid>
+      <description>   </description>
+    </item>
+    
+    <item>
+      <title>Kingdoms of Amalur: Reckoning</title>
+      <link>https://schuttejoe.github.io/project/koar/</link>
+      <pubDate>Tue, 07 Feb 2012 14:04:59 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/project/koar/</guid>
+      <description>Thanks to my friends Jay Gillan and Shaun Martin for the screenshots.</description>
+    </item>
+    
+  </channel>
+</rss>

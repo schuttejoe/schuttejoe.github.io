@@ -1,77 +1,114 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
-<head>
-  <link href="http://gmpg.org/xfn/11" rel="profile">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.37" />
+<html lang="en-us">
+    <head>
+         
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Sampling the Solid Angle of Area Light Sources</title>
+        
+        <style>
 
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    html body {
+        font-family: 'Raleway', sans-serif;
+        background-color: white;
+    }
 
-  <title>Sampling the Solid Angle of Area Light Sources &middot; Rendering Equations</title>
-
-  
-  <link rel="stylesheet" href="https://schuttejoe.github.io/css/print.css" media="print">
-  <link rel="stylesheet" href="https://schuttejoe.github.io/css/poole.css">
-  <link rel="stylesheet" href="https://schuttejoe.github.io/css/syntax.css">
-  <link rel="stylesheet" href="https://schuttejoe.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+</style>
 
 
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
+<link rel="stylesheet" href="https://schuttejoe.github.io/css/main.css">
 
-  
-  <link href="" rel="alternate" type="application/rss+xml" title="Rendering Equations" />
 
-  
-  <script type="text/javascript"
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-  </script>
-  <script src="https://schuttejoe.github.io/js/mathjaxsetup.js"></script>
 
-  
-</head>
 
-  <body class="theme-base-0b ">
-  <div class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://schuttejoe.github.io/"><h1>Rendering Equations</h1></a>
-      <p class="lead">
-       Joe Schutte 
-      </p>
-    </div>
 
-    <ul class="sidebar-nav">
-      <li><a href="https://schuttejoe.github.io/">Home</a> </li>
-      
-    </ul>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
 
-    <div>
-      
-          
-          <a href="http://twitter.com/schuttejoe" title="@schuttejoe on Twitter">
-            <img align="left" src="/img/Twitter.png">
-          </a>    
-      
-      
-          
-          <a href="http://github.com/schuttejoe" title="schuttejoe on GitHub">
-            <img align="left" src="/img/Github.png">
-          </a>
-      
-    </div>
-    <p> </p>
-  </div>
-</div>
 
-    <div class="content container">
-    <div class="post">
-  <h1>Sampling the Solid Angle of Area Light Sources</h1>
-  <span class="post-date">Sun, Apr 8, 2018</span>
-  
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"> 
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+ 
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+    
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<script>$(document).on('click', function() { $('.collapse').collapse('hide'); })</script>
+ <meta name="generator" content="Hugo 0.37" />
+    </head>
+
+    
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    
+    <script src="https://schuttejoe.github.io/js/mathjaxsetup.js"></script>
+
+    <body>
+         
+        <nav class="navbar navbar-default navbar-fixed-top">
+
+            <div class="container">
+
+                
+                    <ul class="nav navbar-nav">
+                        
+                            <li><a href="/">Home</a></li>
+                        
+                            <li><a href="/post/">Blog</a></li>
+                        
+                            <li><a href="/project/">Projects</a></li>
+                        
+                    </ul>
+                
+
+                
+                    <ul class="nav navbar-nav navbar-right">
+                        
+                            <li class="navbar-icon"><a href="mailto:schutte.joe@gmail.com"><i class="fa fa-envelope-o"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://twitter.com/schuttejoe/"><i class="fa fa-twitter"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://github.com/schuttejoe/"><i class="fa fa-github"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://www.linkedin.com/in/joe-schutte-32540212/"><i class="fa fa-linkedin"></i></a></li>
+                        
+                    </ul>
+                
+
+            </div>
+
+        </nav>
+
+
+<main>
+
+    <a href="https://schuttejoe.github.io/img/Posts/AreaLightSampling/Preview.png"><img src="https://schuttejoe.github.io/img/Posts/AreaLightSampling/Preview.png" width="400" height="225"></a>
+    <h3>Sampling the Solid Angle of Area Light Sources</h3>
+    <h5>April 8, 2018</h5>
+    <hr>
+
+    <br> <div class="text-justify">
 
 <p>$\newcommand{\c}{\textbf{c}}$
 $\newcommand{\x}{\textbf{x}}$
@@ -90,13 +127,13 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>To give you some intuition for why we would want to sample the solid angle of an area light I&rsquo;ll start with this exceptional piece of programmer art:</p>
 
-<p><img src="/img/AreaLightSampling/AreaVsSolidAngle.png" alt="" /></p>
+<p><img src="/img/Posts/AreaLightSampling/AreaVsSolidAngle.png" alt="" /></p>
 
 <p>If it&rsquo;s not clear, this is a 2D view of two rectangular area lights. On the left, the blue samples are distributed evenly over the area of the light and, on the right, the red samples are distributed evenly over the solid angle of the light. On the left side you can see that the samples are somewhat sparse near the top of the hemisphere and get more dense near the horizon. If that light source were to extend even further to the left you can imagine how the samples would become incredibly dense at the horizon. There are two factors here that contibute to this being a poor sample density. Any sample taken will have its lighting attentuated by the cosine term, which is lowest near the horizon, as well as by the recriprical of the square of the distance, which is also going to be the lowest near the horizon. Both of those factors mean that sampling of the area of the light source is prone to sampling the most where it contributes the least in this example. However, on the right side the samples are more dense where the cosine term is greatest and where the distance is shortest.</p>
 
 <p>There&rsquo;s another distrubtion we could sample that would give us even better results. Here&rsquo;s a diagram where the samples were placed uniformly along the projected solid angle:</p>
 
-<p><img src="/img/AreaLightSampling/ProjectedSolidAngle.png" alt="" /></p>
+<p><img src="/img/Posts/AreaLightSampling/ProjectedSolidAngle.png" alt="" /></p>
 
 <p>This leads to a cosine weighted distribution along the solid angle and an even more dense distribution of samples on the area light where they contribute the most. Importance sampling at its finest! Unfortunately, I&rsquo;ve yet to see an implementation of this that doesn&rsquo;t rely on a numerical solve so the cost of generating these samples is often quite high. We&rsquo;ll stick to sampling the solid angle for now since it has lesser drawbacks.</p>
 
@@ -106,7 +143,7 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>Let&rsquo;s jump ahead and take a look at this in action. Based on the description above in a scene with a small rectangular area light centered directly above it we would expect both strategies to have similar noise levels directly under the light and then for the solid angle sampling to have reduced noise further away from the light. Both images below were created using 1 camera ray per pixel and 4 light rays are cast at the intersection. To show the effect of the light as clearly as possible I used a Lambertian BRDF here. On the left I used area sampling and on the right I used solid angle sampling.</p>
 
-<p><a href="/img/AreaLightSampling/RectangleAreaVsSolidAngle.png"><img src="/img/AreaLightSampling/RectangleAreaVsSolidAngle.png" alt="" /></a></p>
+<p><a href="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png" alt="" /></a></p>
 
 <p>You might need to click on the image to see the full-sized version in order to clearly see the difference but its behavior matches what we&rsquo;d expect. Now some food for thought, if we used this same scene but with a light shape with more complicated geometry, like a sphere or a disk, how would we expect the results to change?</p>
 
@@ -126,7 +163,7 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>where $\x$ is the origin, $\c$ is the center point of the sphere, and $\n$ is some direction that is not pointing directly at or away from $\w$. The maximum angle that includes the spherical light is given by $\thetamax$ which can be solved for by understanding that we want to find a vector through $\x$ that is orthogonal to the sphere and then using some basic trigonometry. For a clearer view of that of here is a diagram from [Wang 1993]:</p>
 
-<p><img src="/img/AreaLightSampling/WangDiagram.png" alt="" /></p>
+<p><img src="/img/Posts/AreaLightSampling/WangDiagram.png" alt="" /></p>
 
 <p>So we can see that $\thetamax$ can be calculated with some basic trigonometry on the right triangle formed by $\x$, $\c$, and the point where the vector orthogonal to the sphere hits the sphere:</p>
 
@@ -171,7 +208,7 @@ $$Q_2(\theta) = \int_0^\theta q_2(t)dt = \frac{1 - \cos\theta}{1 - \sqrt{1 - (\f
 
 <p>Did you think about the food for thought I left you with after the image from the first scene? I hope so because we have some spoilers right below. This is the same scene and sample counts described above except with a spherical light source. In this case we can see that solid angle sampling gives better results even directly under the light. My intuition for this is that it&rsquo;s happening because as samples move away from the center of the spherical light both terms of the solid angle measure will decrease faster than they would with a rectangular light so sample placement matters even more here.</p>
 
-<p><a href="/img/AreaLightSampling/SphereAreaVsSolidAngle.png"><img src="/img/AreaLightSampling/SphereAreaVsSolidAngle.png" alt="" /></a></p>
+<p><a href="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png" alt="" /></a></p>
 
 <p>For some code showing this technique in action, look no further!</p>
 
@@ -264,12 +301,24 @@ static float3 IntegrateSphereLight(RTCScene&amp; rtcScene,
 <hr />
 
 <p>edit 4/11/2018: fixed spelling mistake pointed out to me by <a href="https://twitter.com/raroni86">@raroni86</a>.</p>
-
 </div>
 
-
-    </div>
+    
+    
 
     
-  </body>
+
+    
+
+</main>
+
+        <footer>
+
+            <p class="copyright text-muted"></p>
+
+        </footer>
+       
+    </body>
+
 </html>
+

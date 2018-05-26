@@ -1,0 +1,103 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    padding-top: 55px;
+    display: flex; 
+    text-align: center;
+    flex-direction: column;
+}
+
+main {
+    margin: auto;
+    padding: 25px;
+    flex: 1 0 auto;
+    max-width: 1000px; 
+    min-width: 1000px;
+}
+
+/*footer*/
+
+.copyright {
+    margin: 15px 0;
+}
+
+/*home page*/
+
+.intro > h2 {
+    color: #757575;
+    font-size: 5vh;
+}
+
+.intro > h4 {
+    color: #757575;
+    font-size: 2vmin;
+}
+
+a:link, a:visited {
+    color: #4b4b4b;
+}
+
+a.icon:hover {
+    text-decoration: none;
+}
+
+/*paginator at bottom of list view*/
+
+.pages {
+    padding: 15px 0;
+}
+
+.pages-icon {
+    padding: 0 15px;
+}
+
+/*list item for posts and projects*/
+
+.item {
+    padding: 10px 0;
+}
+
+.rightbar > h5 {
+    font-size: 1.2em;
+}
+
+/*navigation bar icons*/
+
+.navbar-icon {
+    font-size: 125%;
+    display: inline-block !important;
+}
+
+/*coloured borders at top and bottom of the page*/
+
+.navbar.navbar-default {
+    border-top: var(--border-width) solid;
+}
+
+footer {
+    border-bottom: var(--border-width) solid;
+}
+
+img {
+    max-width: 100%;
+}
+
+div.projectrow {
+    float: left;
+    margin-bottom: 50px;
+    display: block;
+}
+
+div.leftbar {
+    float:left;
+    width:400px;
+}
+
+div.rightbar {
+    float:right;
+    width:450px;
+    margin-left: 50px;
+    text-align: left ;
+}
