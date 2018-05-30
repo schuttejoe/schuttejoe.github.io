@@ -9,7 +9,7 @@
         <style>
 
     html body {
-        font-family: 'Raleway', sans-serif;
+        font-family: 'Cambria', sans-serif;
         background-color: white;
     }
 
@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cambria">
 
 
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"> 
@@ -118,8 +118,10 @@
 
 <p>Let&rsquo;s start by explaining the two flaws with importance sampling only the distribution of normals; fireflys and wasted samples. For those who do not know, a firefly is a term used in rendering to describe a single pixel that is significantly brighter than those in its neighborhood. Let&rsquo;s zoom in (using nearest-neighbor sampling) on the top of the bunny&rsquo;s head to see these more clearly.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/Fireflies.png" alt="" />
-<em>Earlier I used an image zoomed in on the face but it looked too angry</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/Fireflies.png" alt="" /></center>
+<center><em>Earlier I used an image zoomed in on the face but it looked too angry</em></center>
+<br />
+</p>
 
 <p>To understand where the fireflys are coming from we need to take a close look at the pdf used to generate $\wi$ and then think about how that could cause exceptionally bright pixels.</p>
 
@@ -131,8 +133,8 @@
 
 <p>If you don&rsquo;t like just guessing, Heitz and D&rsquo;Eon have a diagram in their paper showing the weights we get with values $\xi_0$ and $\xi1$ for a low glancing angle.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/plotWeights.jpg" alt="" />
-<em>For low glancing angles we see a sizable amount of our sample space results in large weights that could cause fireflies</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/plotWeights.jpg" alt="" /></center>
+<center><em>For low glancing angles we see a sizable amount of our sample space results in large weights that could cause fireflies</em></center></p>
 
 <p>The next problem, wasted samples, is a bit easier to see. Imagine a view vector at a very low glancing angle to a surface with a very high roughness. Because of that high roughness the importance sampling function will generate microfacet normals in a variety of directions across the hemisphere. Now, in all cases where $\wo \cdot \wm \le 0$ we have to discard the entire sample and all of the work that was done by the path tracer for that ray up to that point is now wasted. For a very low glancing angle that can be nearly half of the samples. That&rsquo;s not good at all!</p>
 
@@ -144,8 +146,8 @@
 
 <p>In part 1 I reference the Masking-Shadowing function $\G_2(\wi,\wo,\wm)$ but never really explained what it was. Now that we have this new, related, term $\G_1(\wo, \wm)$ show up let&rsquo;s spend some time on that. $\G_1(\wo, \wm)$ is the statistical masking function that gives the fraction of microfacets that are visible along outgoing direction $\wo$. This definition is local to the surface we are looking at and does not account for any other microgeometry that might later occlude energy as it goes to or reflects from the microfacet. $\G_2(\wi,\wo,\wm)$ on the other hand, should be thought of as the fraction of microfacets that are visible along the outgoing direction $\wo$ AND both the directions $\wo$ and $\wi$ are not occluded by other microgeometry as they go to and leave the microfacet. It&rsquo;s important to note then that $\G_1(\wo, \wm) \ge \G_2(\wi,\wo,\wm)$. Here is a diagram from [Heitz14] to help visualize.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/Dvn.jpg" alt="" />
-<em>$\D_{\wo}(\wm)$ only accounts for normals that are visible along $\wo$. Note the change in variables here; they use $\wi$ where I use $\wo$</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/Dvn.jpg" alt="" /></center>
+<center><em>$\D_{\wo}(\wm)$ only accounts for normals that are visible along $\wo$. Note the change in variables here; they use $\wi$ where I use $\wo$</em></center></p>
 
 <p>If we had a way to importance sample $\D_{\wo}(\wm)$ it should be easy to see that the problem of wasted samples will go away since $\wo \cdot \wm$ would always be $\gt 0$. Let&rsquo;s take a look at what it would do for our firefly problem. If $\D_{\wo}(\wm)$ is the pdf used to sample $\wm$ and we still reflect our view direction over $\wm$ then we have this as our reflectance:</p>
 
@@ -157,15 +159,15 @@
 
 <p>The most confusing part of the document is that Heitz uses the property that with $\a = 1$ the GGX distribution forms a uniform hemisphere. To handle the infinity other cases where $\a \ne 1$ we have to go back to <a href="http://jcgt.org/published/0003/02/03/paper.pdf">Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs</a> where Heitz shows that we can stretch the distribution of slopes in our masking-shadowing function by changing $\a$ and that this is equivalent to simply changing the slope of the direction we are evaluating.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/slopes.jpg" alt="" />
-<em>The statistical masking-shadowing function does not change as it is stretched if we also change the slope of $\omega_x$ accordingly.</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/slopes.jpg" alt="" /></center>
+<center><em>The statistical masking-shadowing function does not change as it is stretched if we also change the slope of $\omega_x$ accordingly.</em></center></p>
 
 <p>So if we can generate a microfacet normal for $\a=1$ we can stretch it to be usable for any other value of $\a$.</p>
 
 <p>The last thing we need to do is to have a way to uniformly sample only the part of the hemisphere that gives us a microfacet normal $\wm$ where $\wm \cdot \wo \gt 0$. The clever trick that Heitz uses here is to rotate half of the disk upwards so that it is perpendicular to the ray direction $\wo$ then generates samples on the two half disks with probability proportional to its projected area onto direction $\wg$. Then those points are projected onto the hemisphere in the direction of $\wo$ to give us our micofacet normal $\wm$ with $\a=1$. The final step is to apply the stretch to $\wm$ so it is usable for the roughness of the surface we are evaluating.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/discs.jpg" alt="" />
-<em>Heitz and I use different variables again here so let $\textit{V}=\wo$. It should be easy to see how $\wm \cdot \wo \gt 0$ since both directions can be thought of as fitting between those two half disks.</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/discs.jpg" alt="" /></center>
+<center><em>Heitz and I use different variables again here so let $\textit{V}=\wo$. It should be easy to see how $\wm \cdot \wo \gt 0$ since both directions can be thought of as fitting between those two half disks.</em></center></p>
 
 <p>The technical document is quite short and shows the details of the algorithm to generate $\wm$ so I&rsquo;ll leave that out here and let you <a href="https://hal.archives-ouvertes.fr/hal-01509746/document">check the document</a> for that. Or you can just glean it from the source code below.</p>
 
@@ -173,13 +175,13 @@
 
 <p>Now let&rsquo;s compare the results of this new sampling method to the one described in part 1. It might be helpful to zoom in on this one. While the quality difference is much smaller in comparison to the transition from importance sampling the cosine lobe to importance sampling $\D(\wm)$ it is perceptable. Additionally, this new method runs <em>just</em> a little bit faster.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/GgxDVsGgxVndf.png" alt="" />
-<em>The same scene from part 1. On the left we importance sample $\D(\wm)$ and on the right we importance sample $\D_{\wo}(\wm)$. Both cases still use 512 rays per pixel</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/GgxDVsGgxVndf.png" alt="" /></center>
+<center><em>The same scene from part 1. On the left we importance sample $\D(\wm)$ and on the right we importance sample $\D_{\wo}(\wm)$. Both cases still use 512 rays per pixel</em></center></p>
 
 <p>To zoom back in on the bunny&rsquo;s head we can see that the noise from fireflies is significantly reduced.</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/Serenity.png" alt="" />
-<em>Much better! And did I mention this was even a little bit faster?</em></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/Serenity.png" alt="" /></center>
+<center><em>Much better! And did I mention this was even a little bit faster?</em></center></p>
 
 <p>And finally, here is the source code using this new method to calculate $\wi$ and the reflectance from our surface.</p>
 

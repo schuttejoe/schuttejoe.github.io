@@ -9,7 +9,7 @@
         <style>
 
     html body {
-        font-family: 'Raleway', sans-serif;
+        font-family: 'Cambria', sans-serif;
         background-color: white;
     }
 
@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cambria">
 
 
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"> 
@@ -127,13 +127,13 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>To give you some intuition for why we would want to sample the solid angle of an area light I&rsquo;ll start with this exceptional piece of programmer art:</p>
 
-<p><img src="/img/Posts/AreaLightSampling/AreaVsSolidAngle.png" alt="" /></p>
+<p><center><img src="/img/Posts/AreaLightSampling/AreaVsSolidAngle.png" alt="" /></center></p>
 
 <p>If it&rsquo;s not clear, this is a 2D view of two rectangular area lights. On the left, the blue samples are distributed evenly over the area of the light and, on the right, the red samples are distributed evenly over the solid angle of the light. On the left side you can see that the samples are somewhat sparse near the top of the hemisphere and get more dense near the horizon. If that light source were to extend even further to the left you can imagine how the samples would become incredibly dense at the horizon. There are two factors here that contibute to this being a poor sample density. Any sample taken will have its lighting attentuated by the cosine term, which is lowest near the horizon, as well as by the recriprical of the square of the distance, which is also going to be the lowest near the horizon. Both of those factors mean that sampling of the area of the light source is prone to sampling the most where it contributes the least in this example. However, on the right side the samples are more dense where the cosine term is greatest and where the distance is shortest.</p>
 
 <p>There&rsquo;s another distrubtion we could sample that would give us even better results. Here&rsquo;s a diagram where the samples were placed uniformly along the projected solid angle:</p>
 
-<p><img src="/img/Posts/AreaLightSampling/ProjectedSolidAngle.png" alt="" /></p>
+<p><center><img src="/img/Posts/AreaLightSampling/ProjectedSolidAngle.png" alt="" /></center></p>
 
 <p>This leads to a cosine weighted distribution along the solid angle and an even more dense distribution of samples on the area light where they contribute the most. Importance sampling at its finest! Unfortunately, I&rsquo;ve yet to see an implementation of this that doesn&rsquo;t rely on a numerical solve so the cost of generating these samples is often quite high. We&rsquo;ll stick to sampling the solid angle for now since it has lesser drawbacks.</p>
 
@@ -143,7 +143,7 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>Let&rsquo;s jump ahead and take a look at this in action. Based on the description above in a scene with a small rectangular area light centered directly above it we would expect both strategies to have similar noise levels directly under the light and then for the solid angle sampling to have reduced noise further away from the light. Both images below were created using 1 camera ray per pixel and 4 light rays are cast at the intersection. To show the effect of the light as clearly as possible I used a Lambertian BRDF here. On the left I used area sampling and on the right I used solid angle sampling.</p>
 
-<p><a href="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png" alt="" /></a></p>
+<p><center><a href="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/RectangleAreaVsSolidAngle.png" alt="" /></a></center></p>
 
 <p>You might need to click on the image to see the full-sized version in order to clearly see the difference but its behavior matches what we&rsquo;d expect. Now some food for thought, if we used this same scene but with a light shape with more complicated geometry, like a sphere or a disk, how would we expect the results to change?</p>
 
@@ -163,7 +163,7 @@ $\newcommand{\thetamax}{\theta_{max}}$</p>
 
 <p>where $\x$ is the origin, $\c$ is the center point of the sphere, and $\n$ is some direction that is not pointing directly at or away from $\w$. The maximum angle that includes the spherical light is given by $\thetamax$ which can be solved for by understanding that we want to find a vector through $\x$ that is orthogonal to the sphere and then using some basic trigonometry. For a clearer view of that of here is a diagram from [Wang 1993]:</p>
 
-<p><img src="/img/Posts/AreaLightSampling/WangDiagram.png" alt="" /></p>
+<p><center><img src="/img/Posts/AreaLightSampling/WangDiagram.png" alt="" /></center></p>
 
 <p>So we can see that $\thetamax$ can be calculated with some basic trigonometry on the right triangle formed by $\x$, $\c$, and the point where the vector orthogonal to the sphere hits the sphere:</p>
 
@@ -208,7 +208,7 @@ $$Q_2(\theta) = \int_0^\theta q_2(t)dt = \frac{1 - \cos\theta}{1 - \sqrt{1 - (\f
 
 <p>Did you think about the food for thought I left you with after the image from the first scene? I hope so because we have some spoilers right below. This is the same scene and sample counts described above except with a spherical light source. In this case we can see that solid angle sampling gives better results even directly under the light. My intuition for this is that it&rsquo;s happening because as samples move away from the center of the spherical light both terms of the solid angle measure will decrease faster than they would with a rectangular light so sample placement matters even more here.</p>
 
-<p><a href="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png" alt="" /></a></p>
+<p><center><a href="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png"><img src="/img/Posts/AreaLightSampling/SphereAreaVsSolidAngle.png" alt="" /></a></center></p>
 
 <p>For some code showing this technique in action, look no further!</p>
 

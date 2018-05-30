@@ -39,6 +39,16 @@
     </item>
     
     <item>
+      <title>Vertex Connection and Merging</title>
+      <link>https://schuttejoe.github.io/post/vertexconnectionandmerging/</link>
+      <pubDate>Tue, 29 May 2018 12:04:59 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/post/vertexconnectionandmerging/</guid>
+      <description>$\newcommand{\w}{\textit{w}}$ $\newcommand{\x}{\overline{x}}$ $\newcommand{\B}{\textit{B}}$ $\newcommand{\pf}{\overrightarrow{p}}$ $\newcommand{\pr}{\overleftarrow{p}}$ $\newcommand{\gr}{\overleftarrow{g}}$
+If you&amp;rsquo;re interested in path tracing you&amp;rsquo;ve probably also at least heard of both bidirectional path tracing (BPT) and photon mapping (PM). Both algorithms were introduced in the 1990s and gave us powerful new tools for solving problems in areas where unidirectional path tracing was weak. However, despite the advancements they offered, neither algorithm saw wide adaptation in film due to some weaknesses of their own.</description>
+    </item>
+    
+    <item>
       <title>Sampling the Solid Angle of Area Light Sources</title>
       <link>https://schuttejoe.github.io/post/arealightsampling/</link>
       <pubDate>Sun, 08 Apr 2018 14:04:59 -0700</pubDate>

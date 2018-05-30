@@ -9,7 +9,7 @@
         <style>
 
     html body {
-        font-family: 'Raleway', sans-serif;
+        font-family: 'Cambria', sans-serif;
         background-color: white;
     }
 
@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cambria">
 
 
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"> 
@@ -178,7 +178,7 @@ $$\textit{z} = \textit{r}\sin\theta\sin\phi$$</p>
 
 <p>Time for another aside. Many of you might have raised some question marks with that last equation. A number of papers will state that the determinent of the Jacobian of the reflection is $|\textit{J}_R| = \frac{1}{4|\wo \cdot \wm|}$. After some confusion followed by some more searching I&rsquo;m going to give you an intuitive derivation for how I arrived at what I did. From <a href="https://www.graphics.cornell.edu/~bjw/wardnotes.pdf">Notes on the Ward BRDF</a> we get this diagram:</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/Reflection.png" alt="" /></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/Reflection.png" alt="" /></center></p>
 
 <p>Using Wards notation for a generic set of vectors $\textit{i}$, $\textit{h}$, and $\textit{n}$ what we want to do is:</p>
 
@@ -215,7 +215,7 @@ $$= \frac{\F(\wi,\wm) ~ \G_2(\wi,\wo,\wm) ~ \D(\wm)| \wi \cdot \wg |}{4 ~ |\wi\c
 
 <p>Now let&rsquo;s look at the results!</p>
 
-<p><img src="/img/Posts/GgxImportanceSamplingImages/CosineVsGgxD.png" alt="" /></p>
+<p><center><img src="/img/Posts/GgxImportanceSamplingImages/CosineVsGgxD.png" alt="" /></center></p>
 
 <p><em>In order to have something to compare to on the left I generated an image by importance sampling a cosine distribution and on the right I generated an image using the technique described above. The scene is the Stanford bunny with roughness 0.05 lit only with an environment light. Both images were generated with 512 rays per pixel.</em></p>
 

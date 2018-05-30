@@ -36,7 +36,7 @@ main {
 }
 
 a:link, a:visited {
-    color: #4b4b4b;
+    color: #8080A0;
 }
 
 a.icon:hover {
@@ -60,6 +60,10 @@ a.icon:hover {
 }
 
 .rightbar > h5 {
+    font-size: 1.2em;
+}
+
+p {
     font-size: 1.2em;
 }
 
