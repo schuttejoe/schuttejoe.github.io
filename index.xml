@@ -39,6 +39,17 @@
     </item>
     
     <item>
+      <title>Rendering the Moana Island Scene Part 1: Implementing the Disney BSDF</title>
+      <link>https://schuttejoe.github.io/post/disneybsdf/</link>
+      <pubDate>Fri, 10 Aug 2018 12:06:24 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/post/disneybsdf/</guid>
+      <description>$\newcommand{\i}{\textit{i}}$ $\newcommand{\o}{\textit{o}}$ $\newcommand{\n}{\textit{n}}$ $\newcommand{\h}{\textit{h}}$ $\newcommand{\v}{\textit{v}}$ $\newcommand{\x}{\textit{x}}$ $\newcommand{\y}{\textit{y}}$ $\newcommand{\ht}{\textit{h}_t}$
+Preprint I believe this to be complete and correct but I want to validate my results on the Moana Island Scene assets before I share this on social media and risk misleading someone. I&amp;rsquo;ll also add some better images for the &amp;ldquo;final&amp;rdquo; version.
+Intro The Disney BRDF was introduced by Brent Burley as part of the SIGGRAPH 2012 Physically Based Shading course and then extended to a BSDF with integrated subsurface scattering for the SIGGRAPH 2015 Physically Based Shading course.</description>
+    </item>
+    
+    <item>
       <title>Vertex Connection and Merging</title>
       <link>https://schuttejoe.github.io/post/vertexconnectionandmerging/</link>
       <pubDate>Tue, 29 May 2018 12:04:59 -0700</pubDate>
