@@ -18,8 +18,7 @@
       
       <guid>https://schuttejoe.github.io/post/disneybsdf/</guid>
       <description>$\newcommand{\i}{\textit{i}}$ $\newcommand{\o}{\textit{o}}$ $\newcommand{\n}{\textit{n}}$ $\newcommand{\h}{\textit{h}}$ $\newcommand{\v}{\textit{v}}$ $\newcommand{\x}{\textit{x}}$ $\newcommand{\y}{\textit{y}}$ $\newcommand{\ht}{\textit{h}_t}$
-Preprint I believe this to be complete and correct but I want to validate my results on the Moana Island Scene assets before I share this on social media and risk misleading someone. I&amp;rsquo;ll also add some better images for the &amp;ldquo;final&amp;rdquo; version.
-Intro The Disney BRDF was introduced by Brent Burley as part of the SIGGRAPH 2012 Physically Based Shading course and then extended to a BSDF with integrated subsurface scattering for the SIGGRAPH 2015 Physically Based Shading course.</description>
+Intro The Disney BRDF was introduced by Brent Burley as part of the SIGGRAPH 2012 Physically Based Shading course and then extended to a BSDF with integrated subsurface scattering for the SIGGRAPH 2015 Physically Based Shading course. While the model is not strictly physically based it was designed with physically based principles in mind and each of the terms included was done so to fit the model to materials in the MERL 100 database.</description>
     </item>
     
     <item>

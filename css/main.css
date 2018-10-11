@@ -4,15 +4,12 @@ html, body {
 
 body {
     padding-top: 55px;
-    display: flex; 
     text-align: center;
-    flex-direction: column;
 }
 
 main {
     margin: auto;
     padding: 25px;
-    flex: 1 0 auto;
     max-width: 1000px; 
 }
 
@@ -101,6 +98,6 @@ div.leftbar {
 div.rightbar {
     float:right;
     width:450px;
-    margin-left: 50px;
+    margin-left: 20px;
     text-align: left ;
 }

@@ -121,12 +121,6 @@ $\newcommand{\ht}{\textit{h}_t}$</p>
 
 <hr />
 
-<h2 id="preprint">Preprint</h2>
-
-<p>I believe this to be complete and correct but I want to validate my results on the Moana Island Scene assets before I share this on social media and risk misleading someone. I&rsquo;ll also add some better images for the &ldquo;final&rdquo; version.</p>
-
-<hr />
-
 <h2 id="intro">Intro</h2>
 
 <p>The Disney BRDF was introduced by Brent Burley as part of the <a href="http://blog.selfshadow.com/publications/s2012-shading-course/">SIGGRAPH 2012 Physically Based Shading course</a> and then extended to a BSDF with integrated subsurface scattering for the <a href="http://blog.selfshadow.com/publications/s2015-shading-course/">SIGGRAPH 2015 Physically Based Shading course</a>. While the model is not strictly physically based it was designed with physically based principles in mind and each of the terms included was done so to fit the model to materials in the MERL 100 database. More importantly, each term was carefully chosen and parameterized to be easy for artists to use and so that blending multiple layers together would give intuitive results. I believe it is these later traits that have made the Disney BSDF to be so successful.</p>
@@ -162,10 +156,6 @@ $$f(\textit{sheen}, \theta_d) = \textit{sheen} * ((1 - \textit{sheenTint}) + \te
     }
 
     float dotHL = Dot(wm, wi);
-    if(dotHL &lt; 0.0f) {
-        return float3::Zero_;
-    }
-
     float3 tint = CalculateTint(surface.baseColor);
     return surface.sheen * Lerp(float3(1.0f), tint, surface.sheenTint) * Fresnel::SchlickWeight(dotHL);
 }
@@ -312,6 +302,9 @@ static float3 EvaluateDisneyBRDF(const SurfaceParameters&amp; surface, const flo
     float3 f = DisneyFresnel(surface, wo, wm, wi);
 
     Bsdf::GgxVndfAnisotropicPdf(wi, wm, wo, ax, ay, fPdf, rPdf);
+    fPdf *= (1.0f / (4 * AbsDot(wo, wm)));
+    rPdf *= (1.0f / (4 * AbsDot(wi, wm)));
+
     return d * gl * gv * f / (4.0f * dotNL * dotNV);
 }
 </code></pre>
@@ -362,7 +355,7 @@ static float3 EvaluateDisneySpecTransmission(const SurfaceParameters&amp; surfac
 
     float3 color;
     if(thin)
-        color = float3(Sqrtf(surface.baseColor.x), Sqrtf(surface.baseColor.y), Sqrtf(surface.baseColor.z));
+        color = Sqrt(surface.baseColor);
     else
         color = surface.baseColor;
     
@@ -532,8 +525,10 @@ float3 EvaluateDisney(const SurfaceParameters&amp; surface, float3 v, float3 l, 
         float reverseTransmissivePdfW;
         Bsdf::GgxVndfAnisotropicPdf(wi, wm, wo, tax, tay, forwardTransmissivePdfW, reverseTransmissivePdfW);
 
-        forwardPdf += pSpecTrans * forwardTransmissivePdfW;
-        reversePdf += pSpecTrans * reverseTransmissivePdfW;
+        float dotLH = Dot(wm, wi);
+        float dotVH = Dot(wm, wo);
+        forwardPdf += pSpecTrans * forwardTransmissivePdfW / (Square(dotLH + surface.relativeIOR * dotVH));
+        reversePdf += pSpecTrans * reverseTransmissivePdfW / (Square(dotVH + surface.relativeIOR * dotLH));
     }
 
     // -- specular
@@ -543,8 +538,8 @@ float3 EvaluateDisney(const SurfaceParameters&amp; surface, float3 v, float3 l, 
         float3 specular = EvaluateDisneyBRDF(surface, wo, wm, wi, forwardMetallicPdfW, reverseMetallicPdfW);
         
         reflectance += specular;
-        forwardPdf += pBRDF * forwardMetallicPdfW;
-        reversePdf += pBRDF * reverseMetallicPdfW;
+        forwardPdf += pBRDF * forwardMetallicPdfW / (4 * AbsDot(wo, wm));
+        reversePdf += pBRDF * reverseMetallicPdfW / (4 * AbsDot(wi, wm));
     }
 
     reflectance = reflectance * Absf(dotNL);
@@ -588,6 +583,13 @@ static void SampleDisneySpecTransmission(CSampler* sampler, const SurfaceParamet
                                          BsdfSample&amp; sample)
 {
     float3 wo = MatrixMultiply(v, surface.worldToTangent);
+    if(CosTheta(wo) == 0.0) {
+        sample.forwardPdfW = 0.0f;
+        sample.reversePdfW = 0.0f;
+        sample.reflectance = float3::Zero_;
+        sample.wi = float3::Zero_;
+        return false;
+    }
 
     // -- Scale roughness based on IOR
     float rscaled = thin ? ThinTransmissionRoughness(surface.ior, surface.roughness) : surface.roughness;
@@ -600,65 +602,90 @@ static void SampleDisneySpecTransmission(CSampler* sampler, const SurfaceParamet
     float r1 = sampler-&gt;UniformFloat();
     float3 wm = Bsdf::SampleGgxVndfAnisotropic(wo, tax, tay, r0, r1);
 
-    float dotVH = Absf(Dot(wo, wm));
-
-    // -- Disney uses the full dielectric Fresnel equation for transmission. We also importance sample F to
-    // -- switch between refraction and reflection at glancing angles.
-    float F = Fresnel::Dielectric(dotVH, 1.0f, 1.0f / surface.relativeIOR);
-    float scatterPdf;
-    float3 surfaceColor;
-
-    SurfaceEventTypes eventType = SurfaceEventTypes::eScatterEvent;
-
-    float3 wi;
-    if(sampler-&gt;UniformFloat() &lt; F) {
-        wi = Reflect(wm, wo);
-        scatterPdf = F;
-        surfaceColor = surface.baseColor;
+    float dotVH = Dot(wo, wm);
+    if(wm.y &lt; 0.0f) {
+        dotVH = -dotVH;
     }
-    else {
-        if(thin) {
-            // -- When the surface is thin so it refracts into and then out of the surface during this shading
-            // -- event. So the ray is just reflected then flipped and we use the sqrt of the surface color.
-            wi = Reflect(wm, wo);
-            wi.y = -wi.y;
-            surfaceColor = Sqrt(surface.baseColor);
-        }
-        else {
-            surfaceColor = surface.baseColor;
 
-            if(Transmit(wm, wo, surface.relativeIOR, wi)) {
-                eventType = SurfaceEventTypes::eTransmissionEvent;
+    float ni = wo.y &gt; 0.0f ? 1.0f : surface.ior;
+    float nt = wo.y &gt; 0.0f ? surface.ior : 1.0f;
+    float relativeIOR = ni / nt;
 
-                sample.medium.phaseFunction = MediumPhaseFunction::eIsotropic;
-                sample.medium.extinction = CalculateExtinction(surface.transmittanceColor, surface.scatterDistance);
-            }
-            else {
-                wi = Reflect(wm, wo);
-            }
-        }
-
-        // -- pdf for importance sampling the fresnel term
-        scatterPdf = 1.0f - F;
-    }
-    wi = Normalize(wi);
-
+    // -- Disney uses the full dielectric Fresnel equation for transmission. We also importance sample F
+    // -- to switch between refraction and reflection at glancing angles.
+    float F = Fresnel::Dielectric(dotVH, 1.0f, surface.ior);
+    
     // -- Since we're sampling the distribution of visible normals the pdf cancels out with a number of other terms.
     // -- We are left with the weight G2(wi, wo, wm) / G1(wi, wm) and since Disney uses a separable masking function
     // -- we get G1(wi, wm) * G1(wo, wm) / G1(wi, wm) = G1(wo, wm) as our weight.
     float G1v = Bsdf::SeparableSmithGGXG1(wo, wm, tax, tay);
-    sample.reflectance = surfaceColor * G1v;
 
-    // -- calculate pdf terms
+    float pdf;
+
+    float3 wi;
+    if(sampler-&gt;UniformFloat() &lt;= F) {
+        wi = Normalize(Reflect(wm, wo));
+
+        sample.flags = SurfaceEventFlags::eScatterEvent;
+        sample.reflectance = G1v * surface.baseColor;
+
+        float jacobian = (4 * AbsDot(wo, wm));
+        pdf = F / jacobian;
+    }
+    else {
+        if(thin) {
+            // -- When the surface is thin so it refracts into and then out of the surface during this shading event.
+            // -- So the ray is just reflected then flipped and we use the sqrt of the surface color.
+            wi = Reflect(wm, wo);
+            wi.y = -wi.y;
+            sample.reflectance = G1v * Sqrt(surface.baseColor);
+
+            // -- Since this is a thin surface we are not ending up inside of a volume so we treat this as a scatter event.
+            sample.flags = SurfaceEventFlags::eScatterEvent;
+        }
+        else {
+            if(Transmit(wm, wo, relativeIOR, wi)) {
+                sample.flags = SurfaceEventFlags::eTransmissionEvent;
+                sample.medium.phaseFunction = dotVH &gt; 0.0f ? MediumPhaseFunction::eIsotropic : MediumPhaseFunction::eVacuum;
+                sample.medium.extinction = CalculateExtinction(surface.transmittanceColor, surface.scatterDistance);
+            }
+            else {
+                sample.flags = SurfaceEventFlags::eScatterEvent;
+                wi = Reflect(wm, wo);
+            }
+
+            sample.reflectance = G1v * surface.baseColor;
+        }
+
+        wi = Normalize(wi);
+        
+        float dotLH = Absf(Dot(wi, wm));
+        float jacobian = dotLH / (Square(dotLH + surface.relativeIOR * dotVH));
+        pdf = (1.0f - F) / jacobian;
+    }
+
+    if(CosTheta(wi) == 0.0f) {
+        sample.forwardPdfW = 0.0f;
+        sample.reversePdfW = 0.0f;
+        sample.reflectance = float3::Zero_;
+        sample.wi = float3::Zero_;
+        return false;
+    }
+
+    if(surface.roughness &lt; 0.01f) {
+        // -- This is a hack to allow us to sample the correct IBL texture when a path bounced off a smooth surface.
+        sample.flags |= SurfaceEventFlags::eDiracEvent;
+    }
+
+    // -- calculate VNDF pdf terms and apply Jacobian and Fresnel sampling adjustments
     Bsdf::GgxVndfAnisotropicPdf(wi, wm, wo, tax, tay, sample.forwardPdfW, sample.reversePdfW);
-    sample.forwardPdfW /= scatterPdf;
-    sample.reversePdfW /= scatterPdf;
+    sample.forwardPdfW *= pdf;
+    sample.reversePdfW *= pdf;
 
     // -- convert wi back to world space
     sample.wi = Normalize(MatrixMultiply(wi, MatrixTranspose(surface.worldToTangent)));
 
-    // -- Since this is a thin surface we are not ending up inside of a volume so we treat this as a scatter event.
-    sample.type = eventType;
+    return true;
 }
 </code></pre>
 
@@ -679,24 +706,31 @@ static void SampleDisneyDiffuse(CSampler* sampler, const SurfaceParameters&amp; 
     float3 wm = Normalize(wi + wo);
 
     float dotNL = CosTheta(wi);
+    if(dotNL == 0.0f) {
+        sample.forwardPdfW = 0.0f;
+        sample.reversePdfW = 0.0f;
+        sample.reflectance = float3::Zero_;
+        sample.wi = float3::Zero_;
+        return false;
+    }
+
     float dotNV = CosTheta(wo);
-    float absDotHL = Dot(wm, wo);
 
     float pdf;
 
-    SurfaceEventTypes eventType = SurfaceEventTypes::eScatterEvent;
+    SurfaceEventFlags eventType = SurfaceEventFlags::eScatterEvent;
 
     float3 color = surface.baseColor;
 
     float p = sampler-&gt;UniformFloat();
-    if(p &lt; surface.diffTrans) {
+    if(p &lt;= surface.diffTrans) {
         wi = -wi;
         pdf = surface.diffTrans;
 
         if(thin)
             color = Sqrt(color);
         else {
-            eventType = SurfaceEventTypes::eTransmissionEvent;
+            eventType = SurfaceEventFlags::eTransmissionEvent;
 
             sample.medium.phaseFunction = MediumPhaseFunction::eIsotropic;
             sample.medium.extinction = CalculateExtinction(surface.transmittanceColor, surface.scatterDistance);
@@ -707,15 +741,16 @@ static void SampleDisneyDiffuse(CSampler* sampler, const SurfaceParameters&amp; 
     }
 
     float3 sheen = EvaluateSheen(surface, wo, wm, wi);
-    sample.reflectance = sheen;
 
     float diffuse = EvaluateDisneyDiffuse(surface, wo, wm, wi, thin);
 
-    sample.reflectance += color * (diffuse / pdf) * Absf(dotNL);
+    Assert_(pdf &gt; 0.0f);
+    sample.reflectance = sheen + color * (diffuse / pdf);
     sample.wi = Normalize(MatrixMultiply(wi, MatrixTranspose(surface.worldToTangent)));
-    sample.forwardPdfW = Absf(dotNL) / pdf;
-    sample.reversePdfW = Absf(dotNV) / pdf;
-    sample.type = eventType;
+    sample.forwardPdfW = Absf(dotNL) * pdf;
+    sample.reversePdfW = Absf(dotNV) * pdf;
+    sample.flags = eventType;
+    return true;
 }
 </code></pre>
 
@@ -785,7 +820,7 @@ static float3 CalculateExtinction(float3 apparantColor, float scatterDistance)
     float3 a3 = a2 * a;
 
     float3 alpha = float3(1.0f) - Exp(-5.09406f * a + 2.61188f * a2 - 4.31805f * a3);
-    float3 s = float3(1.0f) - a + 3.5f * (a - float3(0.8f)) * (a - float3(0.8f));
+    float3 s = float3(1.9f) - a + 3.5f * (a - float3(0.8f)) * (a - float3(0.8f));
 
     return 1.0f / (s * scatterDistance);
 }
@@ -809,13 +844,30 @@ static float3 CalculateExtinction(float3 apparantColor, float scatterDistance)
 <li>Thin diffuse transmission on the quad with 2 smaller copper quads behind it.</li>
 </ul>
 
-<p>I&rsquo;ll add links to the material json files after I return from SIGGRAPH.</p>
-
 <p><center><img src="/img/Posts/DisneyBsdf/Main.png" alt="" /></center></p>
+
+<hr />
+
+<p>And for some additional pictures from the Moana Island Scene itself here are two of my favorite elements with lighting of questionable quality. I&rsquo;ll note that the reason the lighting is bad is because I have almost no tooling for this and iteration is very slow. I definitely need to add some kind of progressive controls in the future.</p>
+
+<p><center><img src="/img/Posts/DisneyBsdf/GardeniaA.png" alt="" /><br><i>isGardeniaA rendered in my hobby renderer. Clearly the leaves would have subdivision applied to them in Hyperion.</i></center></p>
+
+<p><center><img src="/img/Posts/DisneyBsdf/Hibiscus.png" alt="" /><br><i>isHibiscus rendered in my hobby renderer</i></center></p>
 
 <p>That&rsquo;s a whole lot of content to take in. I&rsquo;m sure I left out a handful of details so feel free to ask any questions on twitter. You can also check out <a href="https://github.com/schuttejoe/Selas/blob/dev/Source/Core/Shading/Disney.cpp">my full implementation</a> or <a href="https://github.com/schuttejoe/Selas">my github</a> if you need additional details.</p>
 
 <p>I hope you found this useful! Please leave any feedback here: <a href="https://twitter.com/schuttejoe"><strong>@schuttejoe</strong></a>!</p>
+
+<hr />
+
+<p>Updates (10/10/2018):</p>
+
+<ul>
+<li>Corrected a typo in CalculateExtinction pointed out to me by <a href="https://twitter.com/syoyo">Syoyo Fujita</a></li>
+<li>Updated code with much better handling for cases that would lead to NaNs</li>
+<li>Corrected some errors in my pdf calculation. I had often failed to take the Jacobian of the transform applied to the sampled direction into account.</li>
+<li>Added images of isGardeniaA and isHibiscus</li>
+</ul>
 
 <hr />
 
@@ -839,6 +891,7 @@ static float3 CalculateExtinction(float3 apparantColor, float scatterDistance)
 <ul>
 <li><a href="http://casual-effects.com/data/">Morgan McGuire for the cleaned up version of Stanford Graphics Lab&rsquo;s Chinese Dragon model</a></li>
 <li><a href="https://cc0textures.com">CC0 Textures for the paper texture</a></li>
+<li><a href="https://twitter.com/syoyo">Syoyo Fujita</a> for pointing out a typo in my CalculateExtinction function.</li>
 </ul>
 </div>
 
