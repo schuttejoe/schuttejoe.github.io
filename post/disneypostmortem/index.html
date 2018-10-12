@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+         
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Rendering the Moana Island Scene Part 2: A production scene from a hobby renderer</title>
+        
+        <style>
+
+    html body {
+        font-family: 'Cambria', sans-serif;
+        background-color: white;
+    }
+
+</style>
+
+
+<link rel="stylesheet" href="https://schuttejoe.github.io/css/main.css">
+
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cambria">
+
+
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css"> 
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+ 
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+    
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<script>$(document).on('click', function() { $('.collapse').collapse('hide'); })</script>
+ <meta name="generator" content="Hugo 0.37" />
+    </head>
+
+    
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    
+    <script src="https://schuttejoe.github.io/js/mathjaxsetup.js"></script>
+
+    <body>
+         
+        <nav class="navbar navbar-default navbar-fixed-top">
+
+            <div class="container">
+
+                
+                    <ul class="nav navbar-nav">
+                        
+                            <li><a href="/">Home</a></li>
+                        
+                            <li><a href="/post/">Blog</a></li>
+                        
+                            <li><a href="/project/">Projects</a></li>
+                        
+                    </ul>
+                
+
+                
+                    <ul class="nav navbar-nav navbar-right">
+                        
+                            <li class="navbar-icon"><a href="mailto:schutte.joe@gmail.com"><i class="fa fa-envelope-o"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://twitter.com/schuttejoe/"><i class="fa fa-twitter"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://github.com/schuttejoe/"><i class="fa fa-github"></i></a></li>
+                        
+                            <li class="navbar-icon"><a href="https://www.linkedin.com/in/joe-schutte-32540212/"><i class="fa fa-linkedin"></i></a></li>
+                        
+                    </ul>
+                
+
+            </div>
+
+        </nav>
+
+
+<main>
+
+    <a href="https://schuttejoe.github.io/img/Posts/DisneyPostMortem/SelasShotCam.png"><img src="https://schuttejoe.github.io/img/Posts/DisneyPostMortem/SelasShotCam.png" width="400" height="225"></a>
+    <h3>Rendering the Moana Island Scene Part 2: A production scene from a hobby renderer</h3>
+    <h5>October 11, 2018</h5>
+    <hr>
+
+    <br> <div class="text-justify">
+
+<hr />
+
+<h2 id="intro">Intro</h2>
+
+<p>Today I&rsquo;m going to take a slightly different approach with this blog post. Rather than trying my best to overwhelm you with math equations we&rsquo;re going to take a nice, casual stroll through my mind as I think about all of the changes I made to my hobby renderer to make it capable of rendering the Disney Moana Island scene. Think something like part post mortem and part recipe. If you&rsquo;re really disappointed about the lack of math you don&rsquo;t need to worry, I&rsquo;ll get back to technical stuff in part 3.</p>
+
+<hr />
+
+<h2 id="motivation">Motivation</h2>
+
+<p>Before we get started let&rsquo;s take a look at what my goal was. I wanted to be able to render the <a href="https://www.disneyanimation.com/technology/datasets"><strong>Disney Moana Island Scene</strong></a> on my desktop PC. While this is a fairly nice home machine with 32Gb of RAM and an 8 physical core CPU it is definitely not production server hardware with 100+ Gb of memory.</p>
+
+<p>Here&rsquo;s the holy grail shot of the scene rendered in Disney&rsquo;s Hyperion renderer:</p>
+
+<p><center><img src="/img/Posts/DisneyPostMortem/HyperionShotCam.png" alt="" /><br><i>Scene rendered with the shotCam camera in Disney&rsquo;s Hyperion</i></center></p>
+
+<p>Beautiful! Makes me want to go watch Moana. There&rsquo;s a small caveat on this shot in that it wasn&rsquo;t rendered with the exact same content that Disney released. This was rendered with their original source and so it includes lighting, geometry, and material details that were later simplified to make this more manageable for us before being released.</p>
+
+<p>To understand the differences between what the content looks like in Hyperion and what they released let&rsquo;s take a look at two other renderers that have tackled this scene.</p>
+
+<p>First up is the original PBRT render that Disney released with help from Matt Pharr:</p>
+
+<p><center><img src="/img/Posts/DisneyPostMortem/PBRTShotCam.png" alt="" /><br><i>Scene rendered with the shotCam camera in PBRT</i></center></p>
+
+<p>You can see that the overall tone of the image is a bit different due to content simplifications as well as some lighting differences from the capabilities of PBRT. These are explained in the README.pdf that is included in the download. The surface under water is, like mine, too dark due to the failure of next event estimation to handle the occlusion by the water&rsquo;s surface. This is also the one other renderer for which I have any numbers - it required 88Gb of memory to render that scene in PBRTv3. It&rsquo;s worth noting that this was the first pass from PBRT and Matt Pharr has made some improvements that he wrote a very interesting series of blog posts on starting here: <a href="https://pharr.org/matt/blog/2018/07/08/moana-island-pbrt-1.html"><strong>Swallowing the elephant (part 1)</strong></a>.</p>
+
+<p>And next up we have a shot of the scene in Renderman thanks to <a href="https://twitter.com/levork">Julian Fong</a>:</p>
+
+<p><center><img src="/img/Posts/DisneyPostMortem/RendermanShotCam.jpg" alt="" /><br><i>Scene rendered with the shotCam camera in Pixar&rsquo;s Renderman</i></center></p>
+
+<p>This was rendered with version 1.0 of the content and so there are some additional differences. The main giveaway is the big Ironwood tree on the left having the wrong transform. If you see that in your scene head back to the source and download their updated version. It looks like they were able to avoid the issue with water occluding rays which looks better than the false occlusions but it lacks the caustics the Hyperion render has. I&rsquo;m not sure about what technique they used to get this look. This image is a lot warmer and while some of that may come from content or how they handled the sky lighting it&rsquo;s still interesting to see how different the results from the 3 renderers are.</p>
+
+<p>And what kind of programmer would I be if I didn&rsquo;t introduce fourth option that is a bit different than the other three? Here&rsquo;s the same shot from my hobby renderer:</p>
+
+<p><center><a href="/img/Posts/DisneyPostMortem/SelasShotCam.png"><img src="/img/Posts/DisneyPostMortem/SelasShotCam.png" alt="" /></a><br><i>Scene rendered with the shotCam camera in my hobby renderer. You can click on it to see the full sized version.</i></center></p>
+
+<p>This image was rendered at 2048x858 with 256spp and took 3.5 hours to render. I allowed it access to 28Gb of RAM but had to estimate how much embree would use for BVH data so it occasionally would exceed that number enough that the OS would start paging. While the render time isn&rsquo;t something to write home about, I am quite happy that I was able to render it that quickly given the limited memory available. Let&rsquo;s talk about how we got there&hellip;</p>
+
+<hr />
+
+<h2 id="getting-started">Getting started</h2>
+
+<p>I&rsquo;ll start by describing where I was starting from. Due to not being very challenged or interested in what I was doing at work I started working on a path tracer in February 2018. This was just a few weeks before the announcement of DXR so that was fortuitous timing for me. I decided to take a break from my hobby of rock climbing and dedicated the time to starting that code to see where it would lead me. This meant I was getting about 10 hours a week on the project so it hasn&rsquo;t moved super quickly. While I can&rsquo;t say I started entirely from scratch I really only had a few containers, math libraries, and some thread primitive wrappers from code I had written back in 2012. Some day I&rsquo;ll write a quick post telling the surprisingly interesting story about the history of the code base that seeded this one.</p>
+
+<p>Anyway, the tech available in my renderer when I started on the Island Scene was pretty much all stuff I had written about in the blog. While the geometry and IBL were loaded from content all of the other lights and materials were basically hard-coded into the engine. I had integrators for unidirectional path tracing with next event estimation and VCM but the threading models for both of these was very naive. It was <em>really</em> primitive. Heck, it&rsquo;s probably still really primitive compared to a production renderer :P</p>
+
+<p>The first step was to add support for their BSDF. That was a whole bunch of work to get what I&rsquo;m going to say is &ldquo;approximately correct&rdquo; and I wrote all about it in <a href="/post/disneybsdf/"><strong>part 1</strong></a>.</p>
+
+<hr />
+
+<h2 id="importing-the-meshes">Importing the meshes</h2>
+
+<p>The next step to render the scene was to actually load the data. While not necessary at all, I already had plans to make a multi-threaded data build system so that&rsquo;s where I started. This let me import the meshes in parallel and avoid re-doing work when the content hadn&rsquo;t changed by serializing the data out to a binary format and tracking dependencies. With that in place and importing each of the meshes in parallel I could now try to import all of the meshes. Using the 4.1.0 release of the <a href="https://github.com/assimp/assimp">Asset Importer</a> library this took about 8 hours to import most of the obj files. The osOcean mesh failed to export at all due to an error. Yikes! Thankfully, someone had already fixed the bug causing osOcean to error. Then after a bit of debugging I found it was only the gigantic Ironwood tree that took 8 hours to import because an array was constantly being resized while data was being added to it. Bet no one has ever seen that cause performance issues before -_-. Anyway, I wrote a quick fix for that and the folks that maintian Asset Importer were kind enough to accept my pull request so if you grab latest and build your own dlls you can import the Ironwood tree in about 2 minutes and the rest in far less time.</p>
+
+<p>With all of that done I was able to import all of the data from scratch in about 15 seconds. Most of that time is spent parsing the curve data files which I didn&rsquo;t take a great approach to but am not bothered enough by to improve. Part of that is because when no content has changed my renderer will begin work in less than a second of starting the app. There&rsquo;s a bit of cheating here that I&rsquo;ll explain later.</p>
+
+<hr />
+
+<h2 id="instancing">Instancing</h2>
+
+<p>Now that I can import the meshes in a reasonable amount of time the next step is to attempt to construct the whole scene. If you take a close look at their element .json files you will see that each element can be composed of potentially tens of thousands or hundreds of thousands of instances and each element can also be instanced. To ground that, think of a tree with thousands of instanced leaves with there being about a dozen copies of the tree visible on the island.</p>
+
+<p>Given the size of the data I&rsquo;m trying to load and the memory I have available using hierarchical instancing here is the obvious choice. Embree has some support for these via their user-geometry primitives. These allow you to define an axis-aligned box that, when a ray would enter the box, will issue a custom callback in which you can then transform the ray to local space of that instance and forward it to a child scene. While the capability here is very nice the limit of axis-aligned boxes for the top-level shape is not great. Using convex hulls for the bounding shape would be nice and likely reduce the number of these callbacks substantially.</p>
+
+<p>Anyway, that&rsquo;s good enough to get it working. Once support for multi-level instancing had been added I can now render all of the geometry. Let&rsquo;s throw it all at my renderer and see what happens:</p>
+
+<p><center><img src="/img/Posts/DisneyPostMortem/kaboom.gif" alt="" /></center></p>
+
+<p>This is a significantly dramatized re-enactment of what actually happened. The reality is that the raw geometry and the BVH data exceeded what the OS would allow me to allocate and the app crashed before it could even start rendering. Then I put my computer to sleep, went to play ultimate Frisbee, and came back to a PC that wouldn&rsquo;t start thanks to a dead motherboard. So yeah&hellip; definitely an explosion while rendering :P</p>
+
+<p>After over a week without a working PC I got back to work. While I couldn&rsquo;t render everything I was able to cherry-pick a handful of elements and rendered a part of the scene without crashing.</p>
+
+<p><center><img src="/img/Posts/DisneyPostMortem/BWSelasShotCam.png" alt="" /></center></p>
+
+<hr />
+
+<h2 id="geometry-caching">Geometry caching</h2>
+
+<p>One really awesome side effect of the way multi-level instancing is handled by embree is that I can pretty trivially introduce geometry caching inside of the user-geometry callbacks. The contents of each element file were split into separate &ldquo;subscene&rdquo; files and in the user-geometry callback I added a lock-free way to verify the data was loaded before forwarding the ray to the subscene. If it wasn&rsquo;t loaded the approximate least recently used subscene would be evicted until enough space was available to load the subscene.</p>
+
+<p>Earlier I mentioned that my renderer began work within one second of starting the app and I said that was kind of cheating. This feature is where that &ldquo;cheating&rdquo; is coming from. The renderer only needs to initialize the BVH for the top-level scene before the renderer gets started and the rest of the loading and BVH initialization is done during the render. If I were to load, construct the BVH, and unload all of the subscenes in a serial fashion it&rsquo;d take about 15 seconds with the vast majority of that being in BVH initialization. While embree is super fast here I do wonder how much time I&rsquo;d save if I could construct the bottom-level BVH&rsquo;s in my build pipeline and simply attach to the data.</p>
+
+<p>After some testing in smaller scenes to verify my tech is working correctly I then tried to render all of the geometry at once. It did not go well. It did not go well at all. After 20 minutes I checked the progress and found that it had completed a few hundred paths. I decided that the environmental impact of completing the render was not worth it and canceled it there.</p>
+
+<hr />
+
+<h2 id="i-have-been-wanting-to-do-this-for-years">I have been wanting to do this for years</h2>
+
+<p>The cause of this slowness shouldn&rsquo;t be too surprising to anyone. Path tracing leads to rays that are highly incoherent which means that a random subscene will often be loaded for just one stray ray and then unloaded before any other rays come along to hit it. During that 20 minute attempt at a render the CPU was mostly just chilling while the poor hard drive was channeling its inner Sisyphus. And so this gives me an excuse to finally implement something I&rsquo;ve been exciting about doing for years. Seriously, this might be the first paper I ever <a href="https://twitter.com/schuttejoe/status/588218093954031616">tweeted about</a>. <a href="http://www.andyselle.com/papers/20/sorting-shading.pdf"><strong>Sorted Deferred Shading for Production Path Tracing</strong></a> is a paper from Disney describing the details of how they bin and sort each ray based on origin and direction and each hit based on geometry and primitive id. The extra work added by the binning and sorting process is paid for by a <strong>drastic</strong> reduction in the amount of data that the render needs to load off disc which leads to a massive performance improvement for out-of-core rendering.</p>
+
+<p>I&rsquo;ll skip the details of my implementation here. The only real difference between what they describe in the paper and what I did is that I added a second set of ray bins for occlusion rays whereas Disney traditionally only had one ray type. Some of their more recent presentations suggest wanting to add support for occlusion rays so I just threw them in from the beginning. Perhaps profiling will change my mind later?</p>
+
+<hr />
+
+<h2 id="ptex">Ptex</h2>
+
+<p>With that change done the renderer is now capable of handling all of the geometry but still can&rsquo;t render the scene correctly due its lack of support for <a href="https://github.com/wdas/ptex"><strong>Ptex</strong></a>. Fortunately, this was a super straightforward library to implement. Create a PtexCache and have the shading threads fetch the textures they need from it. Because the hit positions are sorted the cache will be doing fairly coherent reads so it &ldquo;just works&rdquo;. The one thing to mention is that if you are doing this on a Windows machine make sure you grab <a href="https://github.com/schuttejoe/ptex/commit/f974e77107070bcc385c7bf99aff3611676aa273">this bugfix I have in a pending pull request</a>. Otherwise your render might take&hellip; forever.</p>
+
+<p>The one other caveat to mention here is to make sure the mesh importer you&rsquo;re using is not modifying the input meshes at all. Ptex depends on those texture ids matching and in order to pair meshes to their textures you&rsquo;ll need to make sure your importer hasn&rsquo;t merged meshes using the same material together.</p>
+
+<p>And that&rsquo;s it! With geometry caching, sorted-deferrer path tracing, and support for ptex my renderer can now handle rendering the island scene. Now seems like a good time to throw in a shot from my second favorite camera from the data set.</p>
+
+<p><center><a href="/img/Posts/DisneyPostMortem/SelasBeachCam.png"><img src="/img/Posts/DisneyPostMortem/SelasBeachCam.png" alt="" /></a><br>beachCam shot rendered at 1024x429 with 256spp in 1 hour and 20 minutes. My lack of robust support for subdivision surfaces explains the weird beach geometry.</center></p>
+
+<hr />
+
+<h2 id="misc">Misc</h2>
+
+<p>There are a few other small things worth mentioning that might save you some time. I&rsquo;ll quickly enumerate them all here:</p>
+
+<ul>
+<li>Disney uses light sets to allow them to place lights that only apply to specific meshes in the scene. I split the lights.json file into 3 such that the IBL and the main sky light where in one, all of the palm lights were in another and the beach light was in a third. I then associated each element with a number of these sets. By restricting the lights this way I avoid having awkwardly visible streaks of light on the ocean.</li>
+<li>When you&rsquo;re parsing the element files and you find an empty instancedPrimitivesJson entry in the instancedCopies section just ignore it rather than doing that usual behavior of overriding the instancedPrimitives. Doing an override in this case caused the leaves on all but one of the isPanderus trees to disappear. I&rsquo;ve seen at least one other tweet with a screenshot containing the same bug so I know I&rsquo;m not the only one to run in to this.</li>
+<li>The scale of the scene exposed a precision issue in my code to generate primary camera rays. If you&rsquo;re seeing geometry aliasing at even moderate sample counts make sure you&rsquo;re not also running into this problem. This became apparent to me when I implemented Pixar&rsquo;s <a href="https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf"><strong>Correlated multi-jittered sampling</strong></a> and the aliasing wasn&rsquo;t noticeably reduced.</li>
+</ul>
+
+<hr />
+
+<h2 id="next-steps">Next steps</h2>
+
+<p>The next thing for me to do is profile. 3.5 hours on that machine at that resolution and with that sample count is good but there&rsquo;s gotta be something dumb I&rsquo;m doing that a quick fix for could make it even faster. I&rsquo;m kind of scared of seeing the stats for how many times I&rsquo;m loading a subscene right now only to have the ray miss everything in it. Expect a section in part 3 of this series where I discuss some findings.</p>
+
+<p>After that I want to do something about the geometry under the water being too dark. Disney <a href="https://www.yiningkarlli.com/projects/hyperiondesign/hyperiondesign.pdf">describes using photon mapping</a> with a kind of primary sample space learning to get their caustics. I could also look into <a href="https://www.ics.uci.edu/~yug10/projects/translucent/papers/Hanika_et_al-2015-Computer_Graphics_Forum.pdf">Manifold Next Event Estimation</a>. Whatever I settle on will be the main subject of the third and final part of this series.</p>
+
+<hr />
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>This was fun! It was definitely a non-trivial amount of work. While one person can clearly make a path tracer in a weekend (and thanks to Peter Shirley a lot of people have) it&rsquo;s really clear that it takes a whole team of talented developers to make a production renderer. That&rsquo;s not even including all of the work that went into the tools Disney&rsquo;s artists used to create this scene. Hopefully with this blog post I&rsquo;m able to make it simpler for someone to get this scene rendering on their available hardware.</p>
+
+<p>Finally, it should go without saying that Disney is awesome for putting the work into releasing this. Thank you again, Disney!</p>
+
+<hr />
+
+<p>References:</p>
+
+<ul>
+<li><a href="https://www.disneyanimation.com/technology/datasets"><strong>Disney&rsquo;s Moana Island Scene</strong></a></li>
+<li><a href="https://pharr.org/matt/blog/2018/07/08/moana-island-pbrt-1.html"><strong>Swalling the Elephant</strong></a> by Matt Pharr</li>
+<li><a href="http://www.andyselle.com/papers/20/sorting-shading.pdf"><strong>Sorted Deferred Shading for Production Path Tracing</strong></a></li>
+<li><a href="https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf"><strong>Correlated multi-jittered sampling</strong></a></li>
+<li><a href="https://www.ics.uci.edu/~yug10/projects/translucent/papers/Hanika_et_al-2015-Computer_Graphics_Forum.pdf"><strong>Manifold Next Event Estimation</strong></a></li>
+<li><a href="https://www.yiningkarlli.com/projects/hyperiondesign/hyperiondesign.pdf"><strong>The Design and Evolution of Disney’s Hyperion Renderer</strong></a></li>
+</ul>
+
+<p>Additional Thanks:</p>
+
+<ul>
+<li><a href="https://twitter.com/levork"><strong>Julien Fong</strong></a></li>
+<li><a href="https://embree.github.io/api.html"><strong>Embree</strong></a></li>
+<li><a href="https://github.com/assimp/assimp"><strong>Asset Importer</strong></a></li>
+<li><a href="https://github.com/wdas/ptex"><strong>Ptex</strong></a></li>
+</ul>
+</div>
+
+    
+    
+
+    
+
+    
+
+</main>
+
+        <footer>
+
+            <p class="copyright text-muted"></p>
+
+        </footer>
+       
+    </body>
+
+</html>
+

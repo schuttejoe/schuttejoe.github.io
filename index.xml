@@ -39,6 +39,15 @@
     </item>
     
     <item>
+      <title>Rendering the Moana Island Scene Part 2: A production scene from a hobby renderer</title>
+      <link>https://schuttejoe.github.io/post/disneypostmortem/</link>
+      <pubDate>Thu, 11 Oct 2018 12:06:24 -0700</pubDate>
+      
+      <guid>https://schuttejoe.github.io/post/disneypostmortem/</guid>
+      <description>Intro Today I&amp;rsquo;m going to take a slightly different approach with this blog post. Rather than trying my best to overwhelm you with math equations we&amp;rsquo;re going to take a nice, casual stroll through my mind as I think about all of the changes I made to my hobby renderer to make it capable of rendering the Disney Moana Island scene. Think something like part post mortem and part recipe.</description>
+    </item>
+    
+    <item>
       <title>Rendering the Moana Island Scene Part 1: Implementing the Disney BSDF</title>
       <link>https://schuttejoe.github.io/post/disneybsdf/</link>
       <pubDate>Fri, 10 Aug 2018 12:06:24 -0700</pubDate>
