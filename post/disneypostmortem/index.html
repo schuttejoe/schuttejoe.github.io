@@ -110,8 +110,6 @@
 
     <br> <div class="text-justify">
 
-<hr />
-
 <h2 id="intro">Intro</h2>
 
 <p>Today I&rsquo;m going to take a slightly different approach with this blog post. Rather than trying my best to overwhelm you with math equations we&rsquo;re going to take a nice, casual stroll through my mind as I think about all of the changes I made to my hobby renderer to make it capable of rendering the Disney Moana Island scene. Think something like part post mortem and part recipe. If you&rsquo;re really disappointed about the lack of math you don&rsquo;t need to worry, I&rsquo;ll get back to technical stuff in part 3.</p>
@@ -168,7 +166,7 @@
 
 <hr />
 
-<h2 id="instancing">Instancing</h2>
+<h2 id="multi-level-instancing">Multi-level Instancing</h2>
 
 <p>Now that I can import the meshes in a reasonable amount of time the next step is to attempt to construct the whole scene. If you take a close look at their element .json files you will see that each element can be composed of potentially tens of thousands or hundreds of thousands of instances and each element can also be instanced. To ground that, think of a tree with thousands of instanced leaves with there being about a dozen copies of the tree visible on the island.</p>
 
@@ -196,7 +194,7 @@
 
 <hr />
 
-<h2 id="i-have-been-wanting-to-do-this-for-years">I have been wanting to do this for years</h2>
+<h2 id="the-task-i-have-been-wanting-to-try-for-years">The task I have been wanting to try for years</h2>
 
 <p>The cause of this slowness shouldn&rsquo;t be too surprising to anyone. Path tracing leads to rays that are highly incoherent which means that a random subscene will often be loaded for just one stray ray and then unloaded before any other rays come along to hit it. During that 20 minute attempt at a render the CPU was mostly just chilling while the poor hard drive was channeling its inner Sisyphus. And so this gives me an excuse to finally implement something I&rsquo;ve been exciting about doing for years. Seriously, this might be the first paper I ever <a href="https://twitter.com/schuttejoe/status/588218093954031616">tweeted about</a>. <a href="http://www.andyselle.com/papers/20/sorting-shading.pdf"><strong>Sorted Deferred Shading for Production Path Tracing</strong></a> is a paper from Disney describing the details of how they bin and sort each ray based on origin and direction and each hit based on geometry and primitive id. The extra work added by the binning and sorting process is paid for by a <strong>drastic</strong> reduction in the amount of data that the render needs to load off disc which leads to a massive performance improvement for out-of-core rendering.</p>
 
