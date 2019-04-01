@@ -108,9 +108,7 @@
     <h5>March 7, 2018</h5>
     <hr>
 
-    <br> <div class="text-justify">
-
-<p>In <a href="/post/ggximportancesamplingpart1">Part 1</a> of this post I showed a common method for importance sampling the GGX distribution of normals using the inverse of the CDF of the distribution. While this clearly converged faster than importance sampling a cosine lobe it did still leave a number of fireflys in the image that would be pesky to deal with. Additionally, there is a hidden inefficency that is causing us to potentially waste a number of samples.</p>
+    <br> <div class="text-justify"><p>In <a href="/post/ggximportancesamplingpart1">Part 1</a> of this post I showed a common method for importance sampling the GGX distribution of normals using the inverse of the CDF of the distribution. While this clearly converged faster than importance sampling a cosine lobe it did still leave a number of fireflys in the image that would be pesky to deal with. Additionally, there is a hidden inefficency that is causing us to potentially waste a number of samples.</p>
 
 <p>In 2014 Eric Heitz and Eugene D&rsquo;Eon published <a href="https://hal.inria.fr/hal-00996995v1/document">Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals</a> that describes a method for importance sampling that takes the view direction into account. That solved both of the problems I mention however their method for importance sampling GGX was complicated and not exact. In 2017, Eric Heitz released a technical paper <a href="https://hal.archives-ouvertes.fr/hal-01509746/document">A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals</a> that is&hellip; exactly what the title says it is. Today, I want to write about these improvements.</p>
 
@@ -209,11 +207,13 @@ float SmithGGXMaskingShadowing(float3 wi, float3 wo, float a2)
 
 //====================================================================
 // https://hal.archives-ouvertes.fr/hal-01509746/document
-float3 GgxVndf(float3 wo, float a, float u1, float u2)
+float3 GgxVndf(float3 wo, float roughness, float u1, float u2)
 {
     // -- Stretch the view vector so we are sampling as though
     // -- roughness==1
-    float3 v = Normalize(float3(wo.x * a, wo.y, wo.z * a));
+    float3 v = Normalize(float3(wo.x * roughness,
+                                wo.y,
+                                wo.z * roughness));
 
     // -- Build an orthonormal basis with v, t1, and t2
     float3 t1 = (v.y &lt; 0.999f) ? Normalize(Cross(v, YAxis_)) : XAxis_;
@@ -233,7 +233,9 @@ float3 GgxVndf(float3 wo, float a, float u1, float u2)
              + Sqrtf(Max&lt;float&gt;(0.0f, 1.0f - p1 * p1 - p2 * p2)) * v;
 
     // -- unstretch and normalize the normal
-    return Normalize(float3(a * n.x, Max&lt;float&gt;(0.0f, n.y), a * n.z));
+    return Normalize(float3(roughness * n.x,
+                            Max&lt;float&gt;(0.0f, n.y),
+                            roughness * n.z));
 }
 
 //====================================================================
@@ -268,7 +270,10 @@ void ImportanceSampleGgxVdn(Random::MersenneTwister* twister,
 
 <p>Thanks again for reading!</p>
 
-<h2 id="edit-3-12-18-i-found-an-error-in-the-smith-masking-and-shadowing-functions-and-corrected-them">(Edit 3/12/18: I found an error in the Smith masking and shadowing functions and corrected them.)</h2>
+<p>(Edit 3/12/18: I found an error in the Smith masking and shadowing functions and corrected them.)
+(Edit 3/31/19: Martin Lambers kindly pointed out a shadowed variable in GgxVndf that led to a bug in unstretch.)</p>
+
+<hr />
 
 <p>References:</p>
 
